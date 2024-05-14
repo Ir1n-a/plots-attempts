@@ -18,7 +18,7 @@ function PowerEnergy_CorD(df,i,p)
     E[1]=((C*V^2)/2)*3.6
     P.=E./t
     PE_plot=scatter!(P,E,dpi=360,
-    xlabel="Power (W)",ylabel="Energy (W*h/kg)",
+    xlabel="Power (W/kg)",ylabel="Energy (W*h/kg)",
     framestyle=:box,linewidth=2,
     right_margin=7*Plots.mm,top_margin=5*Plots.mm,
     legend=false)
