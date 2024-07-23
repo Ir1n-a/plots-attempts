@@ -55,9 +55,11 @@ function picking_B()
 end
     
 
-j=3 #=this is for picking how many files will
+j=1 
+#=this is for picking how many files will
 be compared for each graph=#
-plot() #=remember to execute this each time 
+plot() 
+#=remember to execute this each time 
 after one for loop=#
 
 for i in 1:j

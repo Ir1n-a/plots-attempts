@@ -2,7 +2,8 @@ using Plots
 using CSV 
 using DataFrames
 using NativeFileDialog
-plotlyjs()
+#plotlyjs()
+gr()
 #= I need a program that can plot EIS plots when I drag 
 the text file in an open window. I have three different plots, 
 usually just 2, but for modelling I think all three might be 
@@ -24,8 +25,18 @@ title="Nyquist",xlabel="Zre (Ω)",ylabel="Zimg (Ω)",
 right_margin=7*Plots.mm,framestyle=:box,
 linewidth=2, formatter=:plain,xlims=[0,
 maximum(x)],leg=false,size=(500,500),
-markersize=3)
+markersize=3,top_margin=5*Plots.mm,xticks=[0,2000,4000,6000,8000],
+yticks=[0,300,600,900,1200,1500],color=:red)
 end 
+
+function plot_Module(df)
+    x=df."Frequency (Hz)"
+    y=df."Z (Ω)"
+    scatter(x,y,dpi=360,xscale=:log10,title="Module",
+    xlabel="Frequency (Hz)",ylabel="Z (Ω)",
+    framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
+    formatter=:plain, xticks=10.0 .^(-2:5),leg=false,top_margin=5*Plots.mm)
+end
 
 function plot_Bode(df)
     x=df."Frequency (Hz)"
@@ -33,7 +44,7 @@ function plot_Bode(df)
     plot(x,y,dpi=360,xscale=:log10,title="Bode",
     xlabel="Frequency (Hz)",ylabel="Phase Difference (deg)",
     framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
-    formatter=:plain, xticks=10.0 .^(-2:5),leg=false)
+    formatter=:plain, xticks=10.0 .^(-2:5),leg=false,top_margin=5*Plots.mm)
 end
 
 #=Now the files with data need to be picked. Since I have 
@@ -45,11 +56,17 @@ function picking()
 fl=pick_file()
 df=CSV.read(fl,DataFrame)
 
-N=plot_Nyquist(df)
-savefig(N,fl*"_Nyquist.html")
+#N=
+plot_Nyquist(df)
+savefig("Nyquist1")
+#savefig(N,fl*"_Nyquist.html")
 
-B=plot_Bode(df)
-savefig(B,fl*"_Bode.html")
+#B=plot_Bode(df)
+#savefig(B,fl*"_Bode.html")
+
+#M=plot_Module(df)
+#savefig(M,fl*"_Module.html")
+
 end
 
 picking()
