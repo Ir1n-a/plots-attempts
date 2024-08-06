@@ -3,12 +3,12 @@ using CSV
 using DataFrames
 using NumericalIntegration
 using NativeFileDialog
+using Colors
+using ColorSchemes
 plotly()
 
-function plot_Nyquist(df)
-    x=df."Z' (Ω)"
-    y=df."-Z'' (Ω)"
-    plot(x,y,seriestype=:scatter,dpi=360,
+function plot_Nyquist()
+    plot(seriestype=:scatter,dpi=360,
     xlabel="Zre (Ω)",ylabel="-Zimg (Ω)",
 right_margin=7*Plots.mm,framestyle=:box,
 linewidth=2, formatter=:plain,ylims=[0,
@@ -16,21 +16,16 @@ maximum(y)+0.02*maximum(y)],size=(500,500),
 markersize=3, top_margin=5*Plots.mm,legend=false)
 end
 
-function plot_Bode(df)
-    x=df."Frequency (Hz)"
-    y=df."-Phase (°)"
-    plot(x,y,dpi=360,xscale=:log10,
+function plot_Bode()
+    plot(dpi=360,xscale=:log10,
     xlabel="Frequency (Hz)",ylabel="Phase Difference (deg)",
     framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
     formatter=:plain, xticks=10.0 .^(-2:5),
-    top_margin=5*Plots.mm,legend=false)
-    
+    top_margin=5*Plots.mm,legend=false)  
 end
 
-function plot_Module(df)
-    x=df."Frequency (Hz)"
-    y=df."Z (Ω)"
-    plot(x,y,dpi=360,xscale=:log10,
+function plot_Module()
+    plot(dpi=360,xscale=:log10,
     xlabel="Frequency (Hz)",ylabel="Z (Ω)",
     framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
     formatter=:plain, xticks=10.0 .^(-2:5),leg=false,
@@ -105,11 +100,11 @@ function method(df,q,V,s,p,I)
     m="0"
     if(n[2]=="Frequency (Hz)")
         m="eis"
-        P1=plot_Nyquist(df)
+        P1=plot_Nyquist()
 
-        P2=plot_Bode(df)
+        P2=plot_Bode()
 
-        P3=plot_Module(df)
+        P3=plot_Module()
 
         return m,P1,P2,P3
     elseif(n[1]=="Potential applied (V)")
@@ -155,8 +150,26 @@ pick_type_single(1,1.5,0.05,1,0.0005)
 
 function pick_type_multiple()
     Fs=pick_folder()
-    df=CSV.read(readdir(Fs,join=true),DataFrame)
-    print(df)
+    f=[]
+    for file in readdir(Fs,join=true)
+    df=CSV.read(file,DataFrame)
+    push!(f,df)
+    end
+    p=plot(framestyle=:box)
+    for i in eachindex(f)
+        df=f[i]
+        x=df."Frequency (Hz)"
+        y=df."Z (Ω)"
+        p=plot!(x,y,xscale=:log10)
+    end
+    display(p)
 end
 
 pick_type_multiple()
+
+a=[]
+a=:twilight
+typeof(a)
+
+get(leonardo,0.5)
+
