@@ -42,7 +42,7 @@ end
 function pick_type_multiple_EIS()
     Fs=pick_folder()
     f=[]
-    l=["Initial","5000","10 000","15 000","20 000","25000","30 000","35 000","qm"]
+    l=["1","2","3","4","5","6","7","8","9"]
     for file in readdir(Fs,join=true)
         if skip_html(file) 
             @info "skipping $file"
