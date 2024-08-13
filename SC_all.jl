@@ -1,0 +1,161 @@
+using Plots 
+using CSV
+using DataFrames
+using NativeFileDialog
+using Colors
+using ColorSchemes
+using NumericalIntegration
+plotlyjs()
+
+function plot_Nyquist()
+    plot(seriestype=:scatter,dpi=360,
+    title="Nyquist",xlabel="Zre (Ω)",ylabel="Zimg (Ω)",
+    right_margin=7*Plots.mm,framestyle=:box,
+    linewidth=2, formatter=:plain,leg=false,size=(500,500),
+    markersize=3, top_margin=5*Plots.mm)
+end
+
+function plot_Bode()
+    plot(dpi=360,xscale=:log10,title="Bode",
+    xlabel="Frequency (Hz)",ylabel="Phase Difference (deg)",
+    framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
+    formatter=:plain, xticks=10.0 .^(-2:5),leg=false,
+    top_margin=5*Plots.mm)
+end
+
+function plot_Module()
+    plot(dpi=360,xscale=:log10,
+    xlabel="Frequency (Hz)",ylabel="Z (Ω)",
+    framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
+    formatter=:plain, xticks=10.0 .^(-2:5),leg=false,
+    top_margin=5*Plots.mm)
+end
+
+function plot_CV()
+    plot(dpi=360,title="Cyclic Voltammetry",
+    xlabel="Potential (V)",ylabel="Current (mA)",
+    framestyle=:box,linewidth=2, legend=false,
+    right_margin=7*Plots.mm,top_margin=5*Plots.mm)
+end
+
+function plot_CD()
+    plot(dpi=360,title="Charge-Discharge",
+    xlabel="Time (s)",ylabel="Potential (V)",
+    framestyle=:box,linewidth=2, leg=false,
+    right_margin=7*Plots.mm,formatter=:plain,
+    top_margin=5*Plots.mm)
+end
+
+function skip_html(file)
+    fas=split(basename(file),".")
+    if fas[end]=="html"
+        return true
+    else 
+        return false
+    end
+end
+
+function pick_type_multiple_EIS()
+    Fs=pick_folder()
+    f=[]
+    l=["1","2","3","4","5","6","7","8","9"]
+    for file in readdir(Fs,join=true)
+        if skip_html(file) 
+            @info "skipping $file"
+            continue
+        end
+        df=CSV.read(file,DataFrame)
+        push!(f,df)
+    end
+    p_N=plot_Nyquist()
+    p_B=plot_Bode()
+    p_M=plot_Module()
+    for i in eachindex(f)
+        df=f[i]
+        idx=df."-Z'' (Ω)".>0
+        x_N=df."Z' (Ω)"[idx]
+        y_N=df."-Z'' (Ω)"[idx]
+
+        x_B=df."Frequency (Hz)"[idx]
+        y_B=df."-Phase (°)"[idx]
+
+        x_M=df."Frequency (Hz)"[idx]
+        y_M=df."Z (Ω)"[idx]
+
+        p_N=plot!(p_N,x_N,y_N,color_palette=palette(:BuPu,length(f)+2,rev=true),
+            labels=l[i],linewidth=3,marker=:circle,legend=true,color=i)
+        
+        p_B=plot!(p_B,x_B,y_B,color_palette=palette(:BuPu,length(f)+2,rev=true),
+            labels=l[i],linewidth=3,xscale=:log10,legend=true,color=i)
+        
+        p_M=plot!(p_M,x_M,y_M,color_palette=palette(:BuPu,length(f)+2,rev=true),
+            labels=l[i],linewidth=3,yscale=:log10,xscale=:log10,legend=true,color=i)
+    end
+    c=(pick_folder())
+    savefig(p_N,joinpath(c,basename(Fs)*"_Nyquist.html"))
+    savefig(p_B,joinpath(c,basename(Fs)*"_Bode.html"))
+    savefig(p_M,joinpath(c,basename(Fs)*"_Module.html"))
+end
+
+function pick_type_multiple_CV()
+    Fs=pick_folder()
+    f=[]
+    l=["1","2","3","4","5","6","7","8","9"]
+    for file in readdir(Fs,join=true)
+        if skip_html(file) 
+            @info "skipping $file"
+            continue
+        end
+        df=CSV.read(file,DataFrame)
+        push!(f,df)
+    end
+    p_CV=plot_CV()
+
+    for i in eachindex(f)
+        df=f[i]
+        x=df."WE(1).Potential (V)"
+        y=df."WE(1).Current (A)"
+        idx= df[!, :Scan] .==2 
+        x=x[idx]
+        y=y[idx]
+        push!(x,first(x))
+        push!(y,first(y))
+
+
+    p_CV=plot!(p_CV,x,y*1000,color_palette=palette(:BuPu,length(f)+2,rev=true),
+    labels=l[i],linewidth=1.5,legend=:outerbottomright,color=i)
+    end
+    c=(pick_folder())
+    savefig(p_CV,joinpath(c,basename(Fs)*"_CV.html"))
+end
+
+function pick_type_multiple_CD()
+    Fs=pick_folder()
+    f=[]
+    l=["1","2","3","4","5","6","7","8","9"]
+    for file in readdir(Fs,join=true)
+        if skip_html(file) 
+            @info "skipping $file"
+            continue
+        end
+        df=CSV.read(file,DataFrame)
+        push!(f,df)
+    end
+    p_CD=plot_CD()
+
+    for i in eachindex(f)
+        df=f[i]
+        s1=collect(first(df[!, [:"Time (s)"]]))
+        x=df."Time (s)" .-s1
+        y=df."WE(1).Potential (V)"
+
+    p_CD=plot!(p_CD,x,y,color_palette=palette(:BuPu,length(f)+2,rev=true),
+    labels=l[i],linewidth=1.5,legend=:outerbottomright,color=i)
+    end
+    c=(pick_folder())
+    savefig(p_CD,joinpath(c,basename(Fs)*"_CD.html"))
+end
+
+pick_type_multiple_EIS()
+pick_type_multiple_CV()
+pick_type_multiple_CD()
