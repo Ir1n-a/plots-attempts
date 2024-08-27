@@ -10,9 +10,10 @@ function semi_circle(df)
     Z=df."Z (Ω)"[idx]
     Rs=minimum(Zre)
     Rp=maximum(Zre)
-    r=Rp-Rs
+    r=(Rp-Rs)/2
     idr=Zre.<maximum(Zre)/2
-    q=((r).^2 .- Zre[idr].^2)
+    x=Zre[idr].-r
+    q=((r).^2 .- (x).^2)
     print(q)
     Zre=Zre[idr]
     #id=q.>0
