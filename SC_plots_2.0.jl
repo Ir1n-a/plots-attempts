@@ -6,6 +6,7 @@ using Colors
 using ColorSchemes
 using NumericalIntegration
 plotly()
+#gr()
 
 function plot_default()
     plot(dpi=360,framestyle=:box,
@@ -75,14 +76,14 @@ function data_plots(c,nb,b,l)
         Phase=df."-Phase (°)"[idx]
 
         plot_Nyquist=plot!(plot_Nyquist,Zre,Zimg,color_palette=palette(c,nb,rev=b),
-        labels=l,marker=:circle,legend=true,xlabel="Zre (Ω)",ylabel="Zimg (Ω)")
+        labels=l[i],marker=:circle,legend=true,xlabel="Zre (Ω)",ylabel="Zimg (Ω)")
 
         plot_Bode=plot!(plot_Bode,Frequency,Phase,color_palette=palette(c,nb,rev=b),
-        labels=l,legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
+        labels=l[i],legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
         ,xscale=:log10)
 
         plot_Module=plot!(plot_Module,Frequency,Z,color_palette=palette(c,nb,rev=b),
-        labels=l,legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
+        labels=l[i],legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
         ,xscale=:log10)
     end
 
@@ -92,7 +93,7 @@ function data_plots(c,nb,b,l)
     savefig(plot_Module,joinpath(fs,basename(fd)*"_Module"))
 end
 
-data_plots(:BuPu,9,true,["test","2","3","4","5","6","7","8","9"])
+data_plots(:BuPu,9,true,["1","2","3","4","5","6","7","8","9"])
 
 
 
