@@ -33,7 +33,7 @@ function CV_preparation()
     push!(x,first(x))
     push!(y,first(y))
 
-    if x.*y.> 0 .&& x.>0
+    #=if x.*y.> 0 .&& x.>0
         q=1
     elseif x.*y.< 0 .&& x.>0
         q=2
@@ -42,14 +42,14 @@ function CV_preparation()
     elseif x.*y.< 0 .&& x.<0
         q=4
     else println("I don't know what to tell you, you're screwed,jk")
-    end
+    end=#S
 
-    i_cv=integrate(x,y)
+    #i_cv=integrate(x,y)
     
-    return x,y,i_cv,q
+    return x,y
 end
 
-function data_plots(c,nb,b,l)
+function data_plots_EIS(c,nb,b,l)
     fd=pick_folder()
     fl=[]
     for file in readdir(fd,join=true)
@@ -93,8 +93,44 @@ function data_plots(c,nb,b,l)
     savefig(plot_Module,joinpath(fs,basename(fd)*"_Module"))
 end
 
-data_plots(:BuPu,9,true,["1","2","3","4","5","6","7","8","9"])
+function data_plots_CV(c,nb,b,l)
+    fcv=pick_folder()
+    flcv=[]
 
+    for file in readdir(fcv,join=true)
+        if skip_html(file)
+            @info "skipping $file"
+            continue
+        end
+    df=CSV.read(file,DataFrame)
+    push!(flcv,df)
+    end
+
+    plot_CV=plot_default()
+
+    for i in eachindex(flcv)
+        df=flcv[i]
+
+        x=df."WE(1).Potential (V)"
+        y=df."WE(1).Current (A)"
+        idx= df[!, :Scan] .==2 
+        x=x[idx]
+        y=y[idx]
+        push!(x,first(x))
+        push!(y,first(y))
+
+        plot_CV=plot!(plot_CV,x,y.*1000,linewidth=2,xlabel="Potential (V)",
+        ylabel="Current (mA)",color_palette=palette(c,nb,rev=b),labels=l[i],
+        legend=true)
+    end
+
+    fsv=pick_folder()
+    savefig(plot_CV,joinpath(fsv,basename(fcv)*"_CV"))
+end
+
+data_plots_CV(:watermelon,9,true,["50","100","250","500"])
+
+data_plots_EIS(:BuPu,9,true,["1","2","3","4","5","6","7","8","9"])
 
 
 
