@@ -121,12 +121,47 @@ function data_plots_CV(c,nb,b,l)
 
         plot_CV=plot!(plot_CV,x,y.*1000,linewidth=2,xlabel="Potential (V)",
         ylabel="Current (mA)",color_palette=palette(c,nb,rev=b),labels=l[i],
-        legend=true)
+        legend=false)
     end
 
     fsv=pick_folder()
     savefig(plot_CV,joinpath(fsv,basename(fcv)*"_CV"))
 end
+
+function data_plots_CD(c,nb,b,l)
+    fcd=pick_folder()
+    flcd=[]
+
+    for file in readdir(fcd,join=true)
+        if skip_html(file)
+            @info "skipping $file"
+            continue
+        end
+    df=CSV.read(file,DataFrame)
+    push!(flcd,df)
+    end
+
+    p_CD=plot_default()
+    p_CD_both=plot_default()
+
+    for i in eachindex(flcd)
+        df=flcd[i]
+        s1=collect(first(df[!, [:"Time (s)"]]))
+        x=df."Time (s)" .-s1
+        y=df."WE(1).Potential (V)"
+        x_cd=df."Corrected time (s)"
+
+        p_CD=plot!(p_CD,x,y,color_palette=palette(c,nb,rev=b),
+        labels=l[i],linewidth=2,legend=:outerbottomright)
+        #more work is needed for this, starting the discharge curve from the last charge x(time) value
+
+    end
+
+    fsc=pick_folder()
+    savefig(p_CD, joinpath(fsc,basename(fcd)*"_CD"))
+end
+
+data_plots_CD(:BuPu,9,true,["1","2","3","4","5","6","7","8","9"])
 
 data_plots_CV(:watermelon,9,true,["50","100","250","500"])
 
