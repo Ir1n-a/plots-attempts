@@ -128,7 +128,7 @@ function data_plots_CV(c,nb,b,l)
     savefig(plot_CV,joinpath(fsv,basename(fcv)*"_CV"))
 end
 
-function data_plots_CD(c,nb,b,l)
+function data_plots_CD(c,nb,b)
     fcd=pick_folder()
     flcd=[]
 
@@ -150,9 +150,19 @@ function data_plots_CD(c,nb,b,l)
         x=df."Time (s)" .-s1
         y=df."WE(1).Potential (V)"
         x_cd=df."Corrected time (s)"
+        I=df."WE(1).Current (A)"
+        t_added=[]
+        println(x_cd)
+
+        if(I[1] .> 0)
+            push!(t_added,last(x_cd))
+        end
+
+        println(x_cd)
+        print(t_added)
 
         p_CD=plot!(p_CD,x,y,color_palette=palette(c,nb,rev=b),
-        labels=l[i],linewidth=2,legend=:outerbottomright)
+        linewidth=2,legend=:outerbottomright)
         #more work is needed for this, starting the discharge curve from the last charge x(time) value
 
     end
@@ -161,7 +171,7 @@ function data_plots_CD(c,nb,b,l)
     savefig(p_CD, joinpath(fsc,basename(fcd)*"_CD"))
 end
 
-data_plots_CD(:BuPu,9,true,["1","2","3","4","5","6","7","8","9"])
+data_plots_CD(:BuPu,9,true)
 
 data_plots_CV(:watermelon,9,true,["50","100","250","500"])
 
