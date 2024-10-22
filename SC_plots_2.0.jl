@@ -128,6 +128,50 @@ function data_plots_CV(c,nb,b,l)
     savefig(plot_CV,joinpath(fsv,basename(fcv)*"_CV"))
 end
 
+function data_plots_C(c,nb,b)
+    fcd=pick_folder()
+    flcd=[]
+
+    for file in readdir(fcd,join=true)
+        if skip_html(file)
+            @info "skipping $file"
+            continue
+        end
+    df=CSV.read(file,DataFrame)
+    push!(flcd,df)
+    end
+
+    p_C=plot_default()
+    p_CD_both=plot_default()
+    t_added=[]
+
+    for i in eachindex(flcd)
+        df=flcd[i]
+        s1=collect(first(df[!, [:"Time (s)"]]))
+        x=df."Time (s)" .-s1
+        y=df."WE(1).Potential (V)"
+        x_cd=df."Corrected time (s)"
+        I=df."WE(1).Current (A)"
+
+        if(I[1] .> 0)
+            push!(t_added,last(x_cd))
+        else println("not charging file")
+        end
+
+        p_C=plot!(p_C,x,y,color_palette=palette(c,nb,rev=b),
+        linewidth=2,legend=:outerbottomright)
+        #more work is needed for this, starting the discharge curve from the last charge x(time) value
+
+    end
+
+    print(t_added)
+
+    fsc=pick_folder()
+    savefig(p_C, joinpath(fsc,basename(fcd)*"_CD"))
+
+    return p_C,t_added
+end
+
 function data_plots_CD(c,nb,b)
     fcd=pick_folder()
     flcd=[]
@@ -141,35 +185,23 @@ function data_plots_CD(c,nb,b)
     push!(flcd,df)
     end
 
-    p_CD=plot_default()
-    p_CD_both=plot_default()
+    p_CD,t=data_plots_C(c,nb,b)
 
     for i in eachindex(flcd)
         df=flcd[i]
-        s1=collect(first(df[!, [:"Time (s)"]]))
-        x=df."Time (s)" .-s1
         y=df."WE(1).Potential (V)"
         x_cd=df."Corrected time (s)"
         I=df."WE(1).Current (A)"
-        t_added=[]
-        println(x_cd)
-
-        if(I[1] .> 0)
-            push!(t_added,last(x_cd))
+        
+        for j in eachindex(x_cd)
+            x_cd[j]=x_cd[j]+t[i]
         end
-
-        println(x_cd)
-        print(t_added)
-
-        p_CD=plot!(p_CD,x,y,color_palette=palette(c,nb,rev=b),
-        linewidth=2,legend=:outerbottomright)
-        #more work is needed for this, starting the discharge curve from the last charge x(time) value
-
     end
 
-    fsc=pick_folder()
-    savefig(p_CD, joinpath(fsc,basename(fcd)*"_CD"))
+    print(x_cd)
 end
+
+data_plots_C(:BuPu,9,true)
 
 data_plots_CD(:BuPu,9,true)
 
