@@ -175,7 +175,7 @@ end
 function data_plots_CD(c,nb,b)
     fcd=pick_folder()
     flcd=[]
-
+    x_cd_f=[]
     for file in readdir(fcd,join=true)
         if skip_html(file)
             @info "skipping $file"
@@ -194,11 +194,10 @@ function data_plots_CD(c,nb,b)
         I=df."WE(1).Current (A)"
         
         for j in eachindex(x_cd)
-            x_cd[j]=x_cd[j]+t[i]
+            push!(x_cd,x_cd[j] .+ t[i])
         end
     end
-
-    print(x_cd)
+    return x_cd 
 end
 
 data_plots_C(:BuPu,9,true)
@@ -207,7 +206,7 @@ data_plots_CD(:BuPu,9,true)
 
 data_plots_CV(:watermelon,9,true,["50","100","250","500"])
 
-data_plots_EIS(:BuPu,9,true,["1","2","3","4","5","6","7","8","9"])
+data_plots_EIS(:BuPu,9,true,"1")
 
 
 
