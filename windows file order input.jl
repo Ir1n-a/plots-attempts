@@ -9,7 +9,7 @@ using DataFrames
 using NativeFileDialog
 using CSV
 
-function folder_input()
+function folder_input_manual()
     fld=pick_folder()
     v=[]
     u=[]
@@ -33,6 +33,32 @@ function folder_input()
     df=CSV.read(v[i],DataFrame)
     println(df)
     end
+end
+
+folder_input_manual()
+
+function folder_input()
+    fld=pick_folder()
+    v=[]
+    u=[]
+    n=[]
+    for file in readdir(fld,join=true)
+        push!(v,file)
+    end
+
+    for i in eachindex(v)
+        df=v[i]
+        push!(u,parse(Float64,basename(v[i])))
+    end
+    w=sortperm(u)
+
+    for i in eachindex(v)
+    df=CSV.read(v[w][i],DataFrame)
+    println(df)
+    push!(n,df)
+    end
+
+    println(v[w])
 end
 
 folder_input()
