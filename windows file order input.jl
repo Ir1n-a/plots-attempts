@@ -13,15 +13,26 @@ function folder_input()
     fld=pick_folder()
     v=[]
     u=[]
-    for file in readdir(fld)
+    for file in readdir(fld,join=true)
         push!(v,file)
         push!(u,file)
+        
     end
     v[3]=u[4]
     v[4]=u[8]
     v[5]=u[3]
     v[8]=u[5]
-    return v
+    
+    for i in eachindex(v)
+        df=v[i]
+        println(df)
+
+    end
+    println(v)
+    for i in eachindex(v)
+    df=CSV.read(v[i],DataFrame)
+    println(df)
+    end
 end
 
 folder_input()
