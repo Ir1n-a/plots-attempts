@@ -5,6 +5,7 @@ using NativeFileDialog
 using Colors
 using ColorSchemes
 using NumericalIntegration
+using DelimitedFiles
 plotly()
 
 function plot_default()
@@ -23,30 +24,43 @@ function skip_html(file)
     end
 end
 
-function folder_input()
+function folder_input(mode)
     fld=pick_folder()
     v=[]
     u=[]
     l=[]
+    w=[]
+    files_content=[]
     for file in readdir(fld,join=true)
         push!(v,file)
     end
 
-    for i in eachindex(v)
+    print(v)
+
+    if mode
+        w=permutedims(readdlm(pick_file(),' ',Int,'\n'))[:, 1]
+    else for i in eachindex(v)
         df=v[i]
         push!(u,parse(Float64,basename(v[i])))
+            end
+        w=sortperm(u)
     end
-    w=sortperm(u)
+    println(w)
 
     for i in eachindex(v)
         df=CSV.read(v[w][i],DataFrame)
         println(df)
+        push!(files_content,df)
         push!(l,basename(string(v[w[i]])))
     end
 
+    #=println(v[w])
+    println(l)
+    return files_content
+    println(v)=#
+    println(v)
     println(v[w])
     println(l)
-    return df,v[w],l
 end
 
-folder_input()
+folder_input(true)
