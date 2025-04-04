@@ -3,8 +3,9 @@ using Plots
 using NativeFileDialog
 using CSV
 using DataInterpolations
-#plotly()
-gr()
+using DelimitedFiles
+plotly()
+
 
 function plot_default()
     plot(dpi=360,framestyle=:box,
@@ -59,7 +60,50 @@ function plotting_stage()
     end
 end
 
+function singular_plot()
+    fl=pick_file()
+    df=CSV.read(fl,DataFrame)
+    x_f=[]
+    M=[]
+    I=[]
+    
+    plot_Nyquist=plot_default()
+    plot_Bode=plot_default()
+    plot_Module=plot_default()
 
+    idx=df."-Z'' (Ω)".>0
+    Frequency=df."Frequency (Hz)"[idx]
+    Zre=df."Z' (Ω)"[idx]
+    Zimg=df."-Z'' (Ω)"[idx]
+    Z=df."Z (Ω)"[idx]
+    Phase=df."-Phase (°)"[idx]
+    
+    for i in 2:(length(Zimg)-1)
+        if(Zimg[i-1]<Zimg[i]>Zimg[i+1])
+            push!(M,Zimg[i])
+            push!(I,i)
+        end
+    end
+    println(M)
+    println(I)
+    println(idx)
+    tangent=(M.-Zimg[1])./(Zre[I].-Zre[1])
+    phi=rad2deg.(atan.(tangent))
+    println(tangent)
+    println(phi)
+
+    line_45= (Zre .- Zre[1]) .* tangent .+ Zimg[1]
+
+    #p=plot(plot_Nyquist,Zre,Zimg, xlims=[100,115],ylims=[0,30])
+    p2=plot(Zre,line_45)
+    p=plot!(Zre,Zimg, xlims=[100,115],ylims=[0,30])
+    fs=pick_folder()
+    savefig(p,joinpath(fs,basename(fl)*"_Nyquist.html"))
+    print(line_45)
+end
+
+
+singular_plot()
 plotting_stage()
 
 sort_files()
