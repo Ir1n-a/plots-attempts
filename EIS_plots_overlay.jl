@@ -38,6 +38,16 @@ function plot_Bode(df)
     top_margin=5*Plots.mm)
 end
 
+function plot_Module(df)
+    x=df."Frequency (Hz)"
+    y=df."Z (Ω)"
+    plot(dpi=360,xscale=:log10,
+    xlabel="Frequency (Hz)",ylabel="Z (Ω)",
+    framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
+    formatter=:plain,leg=false,
+    top_margin=5*Plots.mm)
+end
+
 function picking_N()
     fl=pick_file()
     df=CSV.read(fl,DataFrame)
@@ -52,6 +62,14 @@ function picking_B()
 
     B=plot_Bode(df)
     savefig(B,fl*"_Bode.html")
+end
+
+function picking_M()
+    fl=pick_file()
+    df=CSV.read(fl,DataFrame)
+
+    M=plot_Module(df)
+    savefig(M,fl*"_Module.html")
 end
     
 
@@ -68,4 +86,8 @@ end
 
 for i in 1:j
     picking_B()
+end
+
+for i in 1:j
+    picking_M()
 end
