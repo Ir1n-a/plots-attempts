@@ -4,6 +4,7 @@ using NativeFileDialog
 using CSV
 using DataInterpolations
 using DelimitedFiles
+using DataInterpolations
 plotly()
 
 
@@ -66,40 +67,70 @@ function singular_plot()
     x_f=[]
     M=[]
     I=[]
+    m=[]
+    I_m=[]
     
-    plot_Nyquist=plot_default()
-    plot_Bode=plot_default()
-    plot_Module=plot_default()
+    #plot_Nyquist=plot_default()
+    #plot_Bode=plot_default()
+    #plot_Module=plot_default()
 
-    idx=df."-Z'' (Ω)".>0
+    #idx=(df."-Z'' (Ω)" .<= 30) .& (df."-Z'' (Ω)" .>0) 
+    idx=df."-Z'' (Ω)" .>0
     Frequency=df."Frequency (Hz)"[idx]
     Zre=df."Z' (Ω)"[idx]
     Zimg=df."-Z'' (Ω)"[idx]
     Z=df."Z (Ω)"[idx]
     Phase=df."-Phase (°)"[idx]
-    
-    for i in 2:(length(Zimg)-1)
-        if(Zimg[i-1]<Zimg[i]>Zimg[i+1])
-            push!(M,Zimg[i])
+
+    x_intp=df."Z' (Ω)"[idx]
+    #deleteat!(x_intp,31)
+    x1=sortperm(x_intp)
+    y_intp=df."-Z'' (Ω)"[idx]
+    #deleteat!(y_intp,31)
+    A=CubicSpline(y_intp[x1],x_intp[x1])
+
+    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=100), x->A(x),legend=false,aspect_ratio=1)
+    x_c=collect(range(first(x_intp),last(x_intp),length=100))
+    y_c=A(x_c)
+    display(p_linear_intp)
+
+    for i in 2:(length(y_c)-1)
+        if(y_c[i-1]<y_c[i]>y_c[i+1])
+            push!(M,y_c[i])
             push!(I,i)
         end
+        if(y_c[i-1]>y_c[i]<y_c[i+1])
+            push!(m,y_c[i])
+            push!(I_m,i)
+        end
     end
+
+    println(first(x_intp),"\n",last(x_intp))
+
     println(M)
     println(I)
-    println(idx)
-    tangent=(M.-Zimg[1])./(Zre[I].-Zre[1])
+    println(m)
+    println(I_m)
+    #println(idx)
+    tangent=(M.-y_c[1])./(x_c[I].-x_c[1])
     phi=rad2deg.(atan.(tangent))
     println(tangent)
-    println(phi)
+    @show phi
+    fs=pick_folder()
+    #p_phase=plot(Frequency,Phase,xscale=:log10)
+    #savefig(p_phase,joinpath(fs,basename(fl)*"_Bode Phase"))
 
-    line_45= (Zre .- Zre[1]) .* tangent .+ Zimg[1]
+    line_45= (x_c .- x_c[1]) .*tangent .+ y_c[1]
 
     #p=plot(plot_Nyquist,Zre,Zimg, xlims=[100,115],ylims=[0,30])
-    p2=plot(Zre,line_45)
-    p=plot!(Zre,Zimg, xlims=[100,115],ylims=[0,30])
-    fs=pick_folder()
-    savefig(p,joinpath(fs,basename(fl)*"_Nyquist.html"))
-    print(line_45)
+    p2=plot!(p_linear_intp,x_c,line_45)
+    #p=plot!(Zre,Zimg, xlims=[100,115],ylims=[0,30])
+    
+    savefig(p2,joinpath(fs,basename(fl)*"_Nyquist_line1.html"))
+    #print(line_45)
+    println(y_c[I].-y_c[1])
+    print(x_c[I].-x_c[1])
+
 end
 
 
