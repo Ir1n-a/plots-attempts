@@ -92,8 +92,8 @@ function singular_plot()
     deleteat!(y_intp,31)
     A=CubicSpline(y_intp[x1],x_intp[x1])
 
-    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=10000), x->A(x),legend=false,aspect_ratio=1)
-    x_c=collect(range(first(x_intp),last(x_intp),length=100))
+    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=5000), x->A(x),legend=false,aspect_ratio=1)
+    x_c=collect(range(first(x_intp),last(x_intp),length=5000))
     y_c=A(x_c)
     
 
@@ -133,7 +133,7 @@ function singular_plot()
     savefig(p2,joinpath(fs,basename(fl)*"_Nyquist_line1.html"))
     #print(line_45)
 
-    for j in eachindex(y_c)
+    #=for j in eachindex(y_c)
         if isapprox(y_c[j] .-line_45[j], 0, atol=0.1)
         push!(inter,y_c[j].-line_45[j])
         push!(index_inter,j)
@@ -145,7 +145,7 @@ function singular_plot()
     @show inter
     @show index_inter
     @show min
-    #@show inter
+    #@show inter=#
 
     #println(y_c[I].-y_c[1])
     #print(x_c[I].-x_c[1])\
@@ -153,7 +153,7 @@ function singular_plot()
     thexs=[]
 
     splot=plot(x_c ,y_c .- line_45)
-    #display(splot)
+    display(splot)
 
     for k in eachindex(x_c[1:end-1])
         if (y_c .- line_45)[k] .* (y_c .- line_45)[k+1] .<=0
@@ -164,6 +164,7 @@ function singular_plot()
      
     @show zeroui
 
+    #scatter!(splot,thexs,zeros(length(thexs)))
     scatter!(p2,thexs,zeroui)
 
 end
