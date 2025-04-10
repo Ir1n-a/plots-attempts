@@ -26,7 +26,7 @@ function pick_CVo()
     savefig(CVo,cv2*"_CVi.html")
 end
 
-k=7
+k=1
 
 for i in 1:k
     pick_CVo()

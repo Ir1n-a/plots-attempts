@@ -67,18 +67,12 @@ function singular_plot()
     x_f=[]
     M=[]
     I=[]
-    m=[]
-    I_m=[]
-    inter=[]
-    index_inter=[]
-    min=[]
     
-    #plot_Nyquist=plot_default()
-    #plot_Bode=plot_default()
-    #plot_Module=plot_default()
+    plot_Nyquist=plot_default()
+    plot_Bode=plot_default()
+    plot_Module=plot_default()
 
     idx=(df."-Z'' (Ω)" .<= 30) .& (df."-Z'' (Ω)" .>0) 
-    #idx=df."-Z'' (Ω)" .>0
     Frequency=df."Frequency (Hz)"[idx]
     Zre=df."Z' (Ω)"[idx]
     Zimg=df."-Z'' (Ω)"[idx]
@@ -91,81 +85,36 @@ function singular_plot()
     y_intp=df."-Z'' (Ω)"[idx]
     deleteat!(y_intp,31)
     A=CubicSpline(y_intp[x1],x_intp[x1])
+    p_linear_intp=scatter(range(102.5,111.72,length=1000), x->A(x),legend=false)
+    x=collect(range(102.5,111.72,length=1000))
+    y=A(x)
+    display(p_linear_intp)
 
-    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=10000), x->A(x),legend=false,aspect_ratio=1)
-    x_c=collect(range(first(x_intp),last(x_intp),length=100))
-    y_c=A(x_c)
-    
-
-    for i in 2:(length(y_c)-1)
-        if(y_c[i-1]<y_c[i]>y_c[i+1])
-            push!(M,y_c[i])
+    for i in 2:(length(Zimg)-1)
+        if(Zimg[i-1]<Zimg[i]>Zimg[i+1])
+            push!(M,Zimg[i])
             push!(I,i)
         end
-        if(y_c[i-1]>y_c[i]<y_c[i+1])
-            push!(m,y_c[i])
-            push!(I_m,i)
-        end
     end
-
-    println(first(x_intp),"\n",last(x_intp))
-
     println(M)
     println(I)
-    println(m)
-    println(I_m)
-    #println(idx)
-    tangent=(M.-y_c[1])./(x_c[I].-x_c[1])
+    println(idx)
+    tangent=(M.-Zimg[1])./(Zre[I].-Zre[1])
     phi=rad2deg.(atan.(tangent))
     println(tangent)
-    @show phi
+    println(phi)
     fs=pick_folder()
-    #p_phase=plot(Frequency,Phase,xscale=:log10)
-    #savefig(p_phase,joinpath(fs,basename(fl)*"_Bode Phase"))
+    p_phase=plot(Frequency,Phase,xscale=:log10)
+    savefig(p_phase,joinpath(fs,basename(fl)*"_Bode Phase"))
 
-    line_45= (x_c .- x_c[1]) .*tangent .+ y_c[1]
+    line_45= (Zre .- Zre[1]) .* tangent .+ Zimg[1]
 
     #p=plot(plot_Nyquist,Zre,Zimg, xlims=[100,115],ylims=[0,30])
-    p2=plot!(p_linear_intp,x_c,line_45)
-    display(p_linear_intp)
-    #p=plot!(Zre,Zimg, xlims=[100,115],ylims=[0,30])
+    p2=plot(Zre,line_45)
+    p=plot!(Zre,Zimg, xlims=[100,115],ylims=[0,30])
     
-    savefig(p2,joinpath(fs,basename(fl)*"_Nyquist_line1.html"))
-    #print(line_45)
-
-    for j in eachindex(y_c)
-        if isapprox(y_c[j] .-line_45[j], 0, atol=0.1)
-        push!(inter,y_c[j].-line_45[j])
-        push!(index_inter,j)
-        push!(min,y_c[j])
-        end
-    end
-
-
-    @show inter
-    @show index_inter
-    @show min
-    #@show inter
-
-    #println(y_c[I].-y_c[1])
-    #print(x_c[I].-x_c[1])\
-    zeroui=[]
-    thexs=[]
-
-    splot=plot(x_c ,y_c .- line_45)
-    #display(splot)
-
-    for k in eachindex(x_c[1:end-1])
-        if (y_c .- line_45)[k] .* (y_c .- line_45)[k+1] .<=0
-            push!(zeroui,y_c[k])
-            push!(thexs,x_c[k])
-        end
-    end
-     
-    @show zeroui
-
-    scatter!(p2,thexs,zeroui)
-
+    savefig(p,joinpath(fs,basename(fl)*"_Nyquist.html"))
+    print(line_45)
 end
 
 

@@ -10,14 +10,15 @@ picker and charge-discharge curves are plotted
 together =#
 
 function plot_CD(df,s1)
-    x=df."Time (s)" .-s1
-    y=df."WE(1).Potential (V)"
+    idx=df."WE(1).Potential (V)".>0
+    x=df."Time (s)"[idx] .-s1
+    y=df."WE(1).Potential (V)"[idx]
 
     plot!(x,y,dpi=360,title="Charge-Discharge",
     xlabel="Time (s)",ylabel="Potential (V)",
     framestyle=:box,linewidth=2, leg=false,
     right_margin=7*Plots.mm,formatter=:plain,
-    top_margin=5*Plots.mm)
+    top_margin=5*Plots.mm,xticks=[0,2,4,6,8,10,12,14])
 end
 
 #= the software used to obtain the data separates 

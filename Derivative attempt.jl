@@ -28,7 +28,7 @@ plot(t,u)
 B=LinearInterpolation(u,t)=#
 scatter(x,y,legend=false)
 plot(B)
-p_linear_intp=plot(range(102.5,111.72,length=100), x->A(x),legend=false)
+p_linear_intp=scatter(range(102.5,111.72,length=1000), x->A(x),legend=false)
 fole=pick_file()
 savefig(p_linear_intp,joinpath(@__DIR__,basename(fole)*"_Nyquist_linearintp.html"))
 plot(range(102.5,111.72,length=100), x->DataInterpolations.derivative(A,x,1),xscale=:log10,

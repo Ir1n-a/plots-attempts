@@ -41,7 +41,7 @@ end
 function plot_Module(df)
     x=df."Frequency (Hz)"
     y=df."Z (Ω)"
-    plot(dpi=360,xscale=:log10,
+    plot(x,y,dpi=360,xscale=:log10, title="Bode Module",
     xlabel="Frequency (Hz)",ylabel="Z (Ω)",
     framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
     formatter=:plain,leg=false,

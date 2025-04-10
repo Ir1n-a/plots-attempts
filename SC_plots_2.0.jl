@@ -49,7 +49,7 @@ function CV_preparation()
     return x,y
 end
 
-function data_plots_EIS(c,nb,b,l)
+function data_plots_EIS(c,nb,b)
     fd=pick_folder()
     fl=[]
     for file in readdir(fd,join=true)
@@ -76,14 +76,14 @@ function data_plots_EIS(c,nb,b,l)
         Phase=df."-Phase (°)"[idx]
 
         plot_Nyquist=plot!(plot_Nyquist,Zre,Zimg,color_palette=palette(c,nb,rev=b),
-        labels=l[i],marker=:circle,legend=true,xlabel="Zre (Ω)",ylabel="Zimg (Ω)")
+        #=labels=l[i],=#marker=:circle,legend=true,xlabel="Zre (Ω)",ylabel="Zimg (Ω)")
 
         plot_Bode=plot!(plot_Bode,Frequency,Phase,color_palette=palette(c,nb,rev=b),
-        labels=l[i],legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
+        #=labels=l[i],=#legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
         ,xscale=:log10)
 
         plot_Module=plot!(plot_Module,Frequency,Z,color_palette=palette(c,nb,rev=b),
-        labels=l[i],legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
+        #=labels=l[i],=#legend=true,xlabel="Frequency (Hz)",ylabel="-Phase Difference (°)"
         ,xscale=:log10)
     end
 
@@ -206,7 +206,7 @@ data_plots_CD(:BuPu,9,true)
 
 data_plots_CV(:watermelon,9,true,["50","100","250","500"])
 
-data_plots_EIS(:BuPu,9,true,"1")
+data_plots_EIS(:BuPu,16,true)
 
 
 
