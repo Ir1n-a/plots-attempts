@@ -149,23 +149,24 @@ function singular_plot()
 
     #println(y_c[I].-y_c[1])
     #print(x_c[I].-x_c[1])\
-    zeroui=[]
-    thexs=[]
+    zero_crossings_y=[]
+    zero_crossings_x=[]
 
     splot=plot(x_c ,y_c .- line_45)
     display(splot)
 
     for k in eachindex(x_c[1:end-1])
         if (y_c .- line_45)[k] .* (y_c .- line_45)[k+1] .<=0
-            push!(zeroui,y_c[k])
-            push!(thexs,x_c[k])
+            push!(zero_crossings_y,y_c[k])
+            push!(zero_crossings_x,x_c[k])
         end
     end
      
-    @show zeroui
+    @show zero_crossings_y
+    @show zero_crossings_x
 
-    #scatter!(splot,thexs,zeros(length(thexs)))
-    scatter!(p2,thexs,zeroui)
+    #scatter!(splot,zero_crossings_x,zeros(length(zero_crossings_x)))
+    scatter!(p2,zero_crossings_x,zero_crossings_y)
 
 end
 
