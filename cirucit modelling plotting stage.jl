@@ -90,11 +90,30 @@ function singular_plot()
     x1=sortperm(x_intp)
     y_intp=df."-Z'' (Ω)"[idx]
     #deleteat!(y_intp,31)
-    A=CubicSpline(y_intp[x1],x_intp[x1])
+    f=sortperm(Frequency)
+    f_intp=df."Frequency (Hz)"[idx]
+    #f_intp=Frequency
+    phase_intp=df."-Phase (°)"[idx]
 
-    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=5000), x->A(x),legend=false,aspect_ratio=1)
+    A=CubicSpline(y_intp[x1],x_intp[x1])
+    B=CubicSpline(phase_intp[f],f_intp[f])
+
+    g=collect(eachindex(f))
+    @show g
+    @show f_intp
+    @show f
+
+    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=5000),x->A(x) ,legend=false,aspect_ratio=1)
     x_c=collect(range(first(x_intp),last(x_intp),length=5000))
     y_c=A(x_c)
+
+    p_freq_linear_intp=plot((range(first(f_intp),last(f_intp),length=5000)),x->B(x),legend=false)
+    x_f=collect(range(first(f_intp),last(f_intp),length=5000))
+    y_f=B(x_f)
+
+    @show x_f
+    @show y_f
+    
     
 
     for i in 2:(length(y_c)-1)
@@ -122,6 +141,7 @@ function singular_plot()
     fs=pick_folder()
     #p_phase=plot(Frequency,Phase,xscale=:log10)
     #savefig(p_phase,joinpath(fs,basename(fl)*"_Bode Phase"))
+    savefig(p_freq_linear_intp,joinpath(fs,basename(fl)*"_Phase_intp.html"))
 
     @show M
     @show I
@@ -154,6 +174,7 @@ function singular_plot()
     #print(x_c[I].-x_c[1])\
     zero_crossings_y=[]
     zero_crossings_x=[]
+    zero_crossings_f=[]
 
     splot=plot(x_c ,y_c .- line_45)
     display(splot)
@@ -162,17 +183,17 @@ function singular_plot()
         if (y_c .- line_45)[k] .* (y_c .- line_45)[k+1] .<=0
             push!(zero_crossings_y,y_c[k])
             push!(zero_crossings_x,x_c[k])
-            #push!(zero_crossing_freq,)
+            push!(zero_crossings_f,x_f[k])
             #frequency extrapol
         end
     end
      
     @show zero_crossings_y
     @show zero_crossings_x
+    @show zero_crossings_f
 
     #scatter!(splot,zero_crossings_x,zeros(length(zero_crossings_x)))
-    scatter!(p2,zero_crossings_x,zero_crossings_y)
-
+    scatter!(p2,zero_crossings_x,zero_crossings_y,hover=zero_crossings_f)
 end
 
 
