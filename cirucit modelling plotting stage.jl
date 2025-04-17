@@ -77,7 +77,7 @@ function singular_plot()
     #plot_Bode=plot_default()
     #plot_Module=plot_default()
 
-    idx=(df."-Z'' (Ω)" .<= 30) .& (df."-Z'' (Ω)" .>0) 
+    idx=(df."-Z'' (Ω)" .<= 150) .& (df."-Z'' (Ω)" .>0) 
     #idx=df."-Z'' (Ω)" .>0
     Frequency=df."Frequency (Hz)"[idx]
     Zre=df."Z' (Ω)"[idx]
@@ -86,10 +86,10 @@ function singular_plot()
     Phase=df."-Phase (°)"[idx]
 
     x_intp=df."Z' (Ω)"[idx]
-    deleteat!(x_intp,31)
+    #deleteat!(x_intp,31)
     x1=sortperm(x_intp)
     y_intp=df."-Z'' (Ω)"[idx]
-    deleteat!(y_intp,31)
+    #deleteat!(y_intp,31)
     A=CubicSpline(y_intp[x1],x_intp[x1])
 
     p_linear_intp=plot(range(first(x_intp),last(x_intp),length=5000), x->A(x),legend=false,aspect_ratio=1)
@@ -122,6 +122,9 @@ function singular_plot()
     fs=pick_folder()
     #p_phase=plot(Frequency,Phase,xscale=:log10)
     #savefig(p_phase,joinpath(fs,basename(fl)*"_Bode Phase"))
+
+    @show M
+    @show I
 
     line_45= (x_c .- x_c[1]) .*tangent .+ y_c[1]
 
@@ -159,6 +162,8 @@ function singular_plot()
         if (y_c .- line_45)[k] .* (y_c .- line_45)[k+1] .<=0
             push!(zero_crossings_y,y_c[k])
             push!(zero_crossings_x,x_c[k])
+            #push!(zero_crossing_freq,)
+            #frequency extrapol
         end
     end
      
