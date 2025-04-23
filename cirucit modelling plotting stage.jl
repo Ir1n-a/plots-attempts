@@ -4,7 +4,6 @@ using NativeFileDialog
 using CSV
 using DataInterpolations
 using DelimitedFiles
-using DataInterpolations
 plotly()
 
 
