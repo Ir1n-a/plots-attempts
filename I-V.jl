@@ -56,6 +56,7 @@ end
 function I_V()
     File_df,files_labels=sort_files_for_Real()
     plot_IV=plot_IV_format()
+    plot_IV_log=plot_IV_format()
 
     for (i,df) in enumerate(File_df)
         Potential=df."Potential applied (V)"
@@ -63,10 +64,14 @@ function I_V()
 
         plot_IV=plot!(plot_IV,Potential,Current,xlabel="Potential (V)",
         ylabel="Current (A)",lw=3,hover=files_labels[i])
+        plot_IV_log=plot(plot_IV_log,Potential,Current,xlabel="Potential (V)",
+        ylabel="Current (A)",lw=3,hover=files_labels[i],yscale=:log10)
+
     end
 
     save_folder=pick_folder()
     savefig(plot_IV,joinpath(save_folder,basename(save_folder)*"_I_V.html"))
+    savefig(plot_IV_log,joinpath(save_folder,basename(save_folder)*"_I_V_log.html"))
 end
 
 I_V()
