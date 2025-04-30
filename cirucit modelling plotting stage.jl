@@ -76,7 +76,7 @@ function singular_plot()
     #plot_Bode=plot_default()
     #plot_Module=plot_default()
 
-    idx=(df."-Z'' (Ω)" .<= 150) .& (df."-Z'' (Ω)" .>0) 
+    idx=(df."-Z'' (Ω)" .<= 1000) .& (df."-Z'' (Ω)" .>0) 
     #idx=df."-Z'' (Ω)" .>0
     Frequency=df."Frequency (Hz)"[idx]
     Zre=df."Z' (Ω)"[idx]
@@ -110,8 +110,8 @@ function singular_plot()
     x_f=collect(range(first(f_intp),last(f_intp),length=5000))
     y_f=B(x_f)
 
-    @show x_f
-    @show y_f
+    #@show x_f
+    #@show y_f
     
     
 
@@ -144,6 +144,11 @@ function singular_plot()
 
     @show M
     @show I
+
+    plot(Zre,Zimg)
+    
+    fas=scatter!(x_c[I],M)
+    display(fas)
 
     line_45= (x_c .- x_c[1]) .*tangent .+ y_c[1]
 
