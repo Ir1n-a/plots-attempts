@@ -28,20 +28,20 @@ function I_V_normies(n)
 
         Intp_IV=CubicSpline(Current,Potential)
         
-        p_intp=plot!(range(first(Potential),last(Potential),length=5000),x->Intp_IV(x) ,legend=false,aspect_ratio=1,
-        hover=i)
+        #p_intp=plot!(range(first(Potential),last(Potential),length=5000),x->Intp_IV(x) ,legend=false,aspect_ratio=1,
+        #hover=i)
 
-        #plot_IV=plot!(plot_IV,Potential,Current,xlabel="Potential (V)",
-       # ylabel="Current (A)",lw=3,hover=i)
+        plot_IV=plot(plot_IV,Potential,Current,xlabel="Potential (V)",
+       ylabel="Current (A)",lw=3,hover=i)
     end
 
     save_folder=pick_folder()
-    #savefig(plot_IV,joinpath(save_folder,basename(save_folder)*"_I_V_normie.html"))
-    savefig(p_intp,joinpath(save_folder,basename(save_folder)*"_I_V_intp.html"))
+    savefig(plot_IV,joinpath(save_folder,basename(save_folder)*"_I_V_normie.html"))
+    #savefig(p_intp,joinpath(save_folder,basename(save_folder)*"_I_V_intp.html"))
 
 
     @show files_vector
     #@show df_vector
 end
 
-I_V_normies(5)
+I_V_normies(4)
