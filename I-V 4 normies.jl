@@ -13,7 +13,7 @@ function plot_default()
     legend=false)
 end
 
-function I_V_normies(n)
+function I_V_normies(n,mode)
     files_vector=[]
     df_vector=[]
     plot_IV=plot_default()
@@ -27,16 +27,26 @@ function I_V_normies(n)
         Current=df."WE(1).Current (A)"
 
         Intp_IV=CubicSpline(Current,Potential)
-        
+
+        if mode== "basic"
+            plot_IV=plot(plot_IV,Potential,Current,xlabel="Potential (V)",
+            ylabel="Current (A)",lw=3,hover=i)
+        elseif mode == "log"
+            plot_IV=plot(plot_IV,Potential,Current,xlabel="Potential (V)",
+            ylabel="Current (A)",lw=3,hover=i,yscale=:log10)
+        else plot_IV=plot!(range(first(Potential),last(Potential),length=5000),
+            x->Intp_IV(x) ,legend=false,aspect_ratio=1,lw=3, hover=i)
+        end
+
+
         #p_intp=plot!(range(first(Potential),last(Potential),length=5000),x->Intp_IV(x) ,legend=false,aspect_ratio=1,
         #hover=i)
 
-        plot_IV=plot(plot_IV,Potential,Current,xlabel="Potential (V)",
-       ylabel="Current (A)",lw=3,hover=i)
+        
     end
 
     save_folder=pick_folder()
-    savefig(plot_IV,joinpath(save_folder,basename(save_folder)*"_I_V_normie.html"))
+    savefig(plot_IV,joinpath(save_folder,basename(save_folder)*"_I_V_$mode.html"))
     #savefig(p_intp,joinpath(save_folder,basename(save_folder)*"_I_V_intp.html"))
 
 
@@ -44,4 +54,4 @@ function I_V_normies(n)
     #@show df_vector
 end
 
-I_V_normies(4)
+I_V_normies(4,"intp")
