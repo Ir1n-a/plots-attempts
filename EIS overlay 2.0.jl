@@ -2,6 +2,7 @@ using Plots
 using CSV
 using DataFrames
 using NativeFileDialog
+using DataInterpolations
 plotlyjs()
 
 function plot_Nyquist()
@@ -28,11 +29,12 @@ function plot_Module()
     top_margin=5*Plots.mm)
 end
 
-function EIS(n)
+function EIS(n,mode)
     files=[]
     Nyquist=plot_Nyquist()
     Bode=plot_Bode()
     Module=plot_Module()
+    Nyquist_intp=plot_Nyquist()
 
 
     for i in 1:n
@@ -40,23 +42,35 @@ function EIS(n)
         push!(files,f)
         df=CSV.read(f,DataFrame)
 
-        idx=df."Frequency (Hz)".>100
+        idx= 10000 .> df."Frequency (Hz)".>150
         Zre=df."Z' (Ω)"[idx]
         Zimg=df."-Z'' (Ω)"[idx]
         Frequency=df."Frequency (Hz)"[idx]
         Z=df."Z (Ω)"[idx]
         Phase=df."-Phase (°)"[idx]
 
-        Nyquist=plot(Nyquist,Zre,Zimg,hover=basename(files[i]),lw=3)
-        Bode=plot(Bode,Frequency,Phase,hover=basename(files[i]),lw=3)
-        Module=plot(Module,Frequency,Z,hover=basename(files[i]),lw=3)
+        @show Zre
+
+        Nyquist_intp=CubicSpline(Zimg,Zre)
+
+        if mode == "basic"
+            Nyquist=plot(Nyquist,Zre,Zimg,hover=basename(files[i]),lw=3)
+            Bode=plot(Bode,Frequency,Phase,hover=basename(files[i]),lw=3)
+            Module=plot(Module,Frequency,Z,hover=basename(files[i]),lw=3)
+        else Nyquist_intp=plot!(range(first(Zre),last(Zre),length=5000),
+            x->Nyquist_intp(x) ,legend=false,aspect_ratio=1,lw=3)
+        end
     end
 
     save_folder=pick_folder()
 
-    savefig(Nyquist,joinpath(save_folder,basename(save_folder)*"_Nyquist.html"))
-    savefig(Bode,joinpath(save_folder,basename(save_folder)*"_Bode.html"))
-    savefig(Module,joinpath(save_folder,basename(save_folder)*"_Module.html"))
+    if mode == "basic"
+        savefig(Nyquist,joinpath(save_folder,basename(save_folder)*"_Nyquist.html"))
+        savefig(Bode,joinpath(save_folder,basename(save_folder)*"_Bode.html"))
+        savefig(Module,joinpath(save_folder,basename(save_folder)*"_Module.html"))
+
+    else savefig(Nyquist_intp,joinpath(save_folder,basename(save_folder)*"_Nyquist_intp.html"))
+    end
 end
 
-EIS(5)
+EIS(1,"intp")
