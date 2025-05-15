@@ -42,7 +42,7 @@ function EIS(n,mode)
         push!(files,f)
         df=CSV.read(f,DataFrame)
 
-        idx= 10000 .> df."Frequency (Hz)".>150
+        idx= 7000 .> df."Frequency (Hz)".>150
         Zre=df."Z' (Ω)"[idx]
         Zimg=df."-Z'' (Ω)"[idx]
         Frequency=df."Frequency (Hz)"[idx]
@@ -69,7 +69,7 @@ function EIS(n,mode)
         savefig(Bode,joinpath(save_folder,basename(save_folder)*"_Bode.html"))
         savefig(Module,joinpath(save_folder,basename(save_folder)*"_Module.html"))
 
-    else savefig(Nyquist_intp,joinpath(save_folder,basename(save_folder)*"_Nyquist_intp.html"))
+    else savefig(Nyquist_intp,joinpath(save_folder,basename(pick_file())*"_Nyquist_intp.html"))
     end
 end
 
