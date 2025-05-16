@@ -5,16 +5,17 @@ using NativeFileDialog
 using DataInterpolations
 plotlyjs()
 
-function plot_Nyquist()
+function plot_Nyquist(n)
     plot(dpi=360,
     xlabel="Zre (Ω)",ylabel="-Zimg (Ω)",
     right_margin=7*Plots.mm,framestyle=:box,
     linewidth=2, formatter=:plain,markersize=3,
-    top_margin=5*Plots.mm,legend=false)
+    top_margin=5*Plots.mm,legend=true,label=:outerbottom,
+    legendcolumns=n)
 end
 
 function plot_Bode()
-    plot(dpi=360,xscale=:log10,title="Bode",
+    plot(dpi=360,xscale=:log10,
     xlabel="Frequency (Hz)",ylabel="Phase Difference (deg)",
     framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
     formatter=:plain,leg=false,
@@ -22,7 +23,7 @@ function plot_Bode()
 end
 
 function plot_Module()
-    plot(dpi=360,xscale=:log10, title="Bode Module",
+    plot(dpi=360,xscale=:log10,
     xlabel="Frequency (Hz)",ylabel="Z (Ω)",
     framestyle=:box,right_margin=7*Plots.mm,linewidth=4,
     formatter=:plain,leg=false,
@@ -31,10 +32,10 @@ end
 
 function EIS(n,mode)
     files=[]
-    Nyquist=plot_Nyquist()
+    Nyquist=plot_Nyquist(n)
     Bode=plot_Bode()
     Module=plot_Module()
-    Nyquist_intp=plot_Nyquist()
+    Nyquist_intp=plot_Nyquist(n)
 
 
     for i in 1:n
@@ -54,9 +55,10 @@ function EIS(n,mode)
         Nyquist_intp=CubicSpline(Zimg,Zre)
 
         if mode == "basic"
-            Nyquist=plot(Nyquist,Zre,Zimg,hover=basename(files[i]),lw=3)
-            Bode=plot(Bode,Frequency,Phase,hover=basename(files[i]),lw=3)
-            Module=plot(Module,Frequency,Z,hover=basename(files[i]),lw=3)
+            Nyquist=plot(Nyquist,Zre,Zimg,label=basename(files[i]),lw=3,legend=false)
+            Bode=plot(Bode,Frequency,Phase,label=basename(files[i]),lw=3,legend=false,
+            formatter=:plain)
+            Module=plot(Module,Frequency,Z,label=basename(files[i]),lw=3,legend=false)
         else Nyquist_intp=plot!(range(first(Zre),last(Zre),length=5000),
             x->Nyquist_intp(x) ,legend=false,aspect_ratio=1,lw=3)
         end
@@ -73,4 +75,4 @@ function EIS(n,mode)
     end
 end
 
-EIS(1,"intp")
+EIS(3,"basic")
