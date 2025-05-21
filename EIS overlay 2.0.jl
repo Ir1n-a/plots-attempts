@@ -36,6 +36,10 @@ function EIS(n,mode)
     Bode=plot_Bode()
     Module=plot_Module()
     Nyquist_intp=plot_Nyquist(n)
+    del_idx=[]
+    idx_intp=[]
+    ha=[]
+    huh=[]
 
 
     for i in 1:n
@@ -43,14 +47,49 @@ function EIS(n,mode)
         push!(files,f)
         df=CSV.read(f,DataFrame)
 
-        idx= 7000 .> df."Frequency (Hz)".>150
+        idx= 100 .> df."-Z'' (Ω)" .>0
         Zre=df."Z' (Ω)"[idx]
         Zimg=df."-Z'' (Ω)"[idx]
         Frequency=df."Frequency (Hz)"[idx]
         Z=df."Z (Ω)"[idx]
         Phase=df."-Phase (°)"[idx]
 
+        @show length(Zre)
+        @show length(Zimg)
+
+        for j in 2:(length(Zre))
+            if Zre[j-1] .> Zre[j]
+                push!(del_idx,j)
+                #deleteat!(Zre,j)
+            else continue
+            end
+        end
+        
+        deleteat!(Zre,del_idx)
+        deleteat!(Zimg,del_idx)
+        
+        
+        @show length(Zre)
+        @show length(Zimg)
+
+
+        
+        #idx_intp=Zre
+        
+
+        @show del_idx
         @show Zre
+
+        for k in 2:length(Zre)
+            if Zre[k-1] .> Zre[k]
+                push!(ha,k)
+                push!(huh,Zre)
+            else continue
+            end
+        end
+
+        print(ha)
+        @show huh
 
         Nyquist_intp=CubicSpline(Zimg,Zre)
 
@@ -75,4 +114,4 @@ function EIS(n,mode)
     end
 end
 
-EIS(3,"basic")
+EIS(1,"intp")
