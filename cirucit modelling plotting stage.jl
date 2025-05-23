@@ -102,12 +102,12 @@ function singular_plot()
     @show f_intp
     @show f
 
-    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=5000),x->A(x) ,legend=false,aspect_ratio=1)
-    x_c=collect(range(first(x_intp),last(x_intp),length=5000))
+    p_linear_intp=plot(range(first(x_intp),last(x_intp),length=50000),x->A(x) ,legend=false,aspect_ratio=1)
+    x_c=collect(range(first(x_intp),last(x_intp),length=50000))
     y_c=A(x_c)
 
-    p_freq_linear_intp=plot((range(first(f_intp),last(f_intp),length=5000)),x->B(x),legend=false)
-    x_f=collect(range(first(f_intp),last(f_intp),length=5000))
+    p_freq_linear_intp=plot((range(first(f_intp),last(f_intp),length=50000)),x->B(x),legend=false)
+    x_f=collect(range(first(f_intp),last(f_intp),length=50000))
     y_f=B(x_f)
 
     #@show x_f
