@@ -13,13 +13,19 @@ function formula_parallel(R1,C1,R2,C2)
     F=pick_file()
     df=CSV.read(F,DataFrame)
     f=df."Frequency (Hz)"
+    Zre_data=df."Z' (Ω)"
+    Zimg_data=df."-Z'' (Ω)"
+    
+    f_test=[300001:100:700000;f;]
 
     ratio = teta2/teta1
     @show ratio
 
-    Zre= 2.74 .+ (R1 ./(1 .+ (2*π .*f .* R1*C1).^2)) # .+ R2 ./(1 .+ (2*π*f_fs*R2*C2).^2)
+    Zre_zero=(R1 ./(1 .+ (2*π .*f_test[1] .* R1*C1).^2))
 
-    Zimg= (2*π .*f .* (R1 .^2) * C1) ./ (1 .+ (2*π.*f .*R1 * C1).^2)  #.+ 
+    Zre=  (R1 ./(1 .+ (2*π .*f_test .* R1*C1).^2)) .- Zre_zero # .+ R2 ./(1 .+ (2*π*f_fs*R2*C2).^2)
+
+    Zimg= (2*π .*f_test .* (R1 .^2) * C1) ./ (1 .+ (2*π.*f_test .*R1 * C1).^2)  #.+ 
     #(2*π*f_fs.*(R2.^2) * C2) ./ (1 .+ (2*π*f_fs*R2 * C2).^2)
 
     phase=rad2deg.(atan.(Zimg,Zre))
@@ -33,7 +39,8 @@ function formula_parallel(R1,C1,R2,C2)
     @show rad2deg(atan(last(Zimg)/last(Zre)))
     @show rad2deg(atan(first(Zimg)/first(Zre)))
     plot(Zre,Zimg)
-    plot(f,phase,xscale=:log10,legend=false)
+   # @show first(f)
+    #plot(f_test,phase,xscale=:log10,legend=false)
     
 end
 
