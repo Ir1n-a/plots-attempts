@@ -30,7 +30,11 @@ function EIS(R,C,Ro)
     tg= Zimg_t ./ Zre_t
     angle=rad2deg.(atan.(tg))
 
-    lines!(acs2,Frequency,angle)
+    calculated_tg= (2 .* π .* Frequency .* (R .^2) .* C) ./ (R .+ Ro .* (1 .+ (2 .* π .* Frequency .* R .* C) .^2 ))
+    calculated_angle=rad2deg.(atan.(calculated_tg))
+
+    lines!(acs2,Frequency,calculated_angle)
+    #lines!(acs2,Frequency,angle)
 
 
     current_figure()
