@@ -33,10 +33,16 @@ Smooth_Current=RegularizationSmooth(Current,Time, d; λ, alg = :fixed)
 
 L_intp_V=CubicSpline(Potential,Time)
 L_intp_I=CubicSpline(Current,Time)
-lines(range(first(Time),last(Time),length=5000),
+lines(range(first(Time),last(Time),length=4096),
 x->Smooth(x))
 
-lines(range(first(Time),last(Time),length=5000),
+lines(Current ./ deriv,Time)
+
+deriv=DataInterpolations.derivative.((Smooth,),range(first(Time),last(Time),length=4096),1)
+
+lines!(Time,deriv)
+
+lines(range(first(Time),last(Time),length=4096),
 x->Smooth_Current(x))
 scatter!(Time,Current,markersize=3)
 
