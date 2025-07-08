@@ -32,18 +32,22 @@ function EIS_overall()
     Frequency=df_EIS."Frequency (Hz)"[idx]
     Z=df_EIS."Z (Ω)"[idx]
     Phase=df_EIS."-Phase (°)"[idx]
+    C= 1 ./ (2*π .* Frequency .* Zimg)
 
     Nyquist=lines(Zre,Zimg,axis=(aspect=AxisAspect(1),))
     DataInspector(Nyquist)
-    display(GLMakie.Screen(),Nyquist)
+    #display(GLMakie.Screen(),Nyquist)
 
     Bode=lines(Frequency,Phase,axis=(xscale=log10,))
     DataInspector(Bode)
-    display(GLMakie.Screen(),Bode)
+    #display(GLMakie.Screen(),Bode)
     
     Module=lines(Frequency,Z,axis=(xscale=log10,))
     DataInspector(Module)
-    display(GLMakie.Screen(),Module)
+    #display(GLMakie.Screen(),Module)
+
+    C_plot=lines(Frequency,C)
+    display(GLMakie.Screen(),C_plot)
 
     savefolder=pick_folder()
 
@@ -53,6 +57,8 @@ function EIS_overall()
     "_Bode.png"),Bode)
     save(joinpath(savefolder,basename(f_EIS)*
     "_Module.png"),Module)
+    save(joinpath(savefolder,basename(f_EIS)*
+    "_C.png"),C_plot)
 end
     
 
