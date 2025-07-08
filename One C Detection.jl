@@ -4,6 +4,7 @@ using NativeFileDialog
 using GLMakie 
 using DataInterpolations
 using RegularizationTools
+using Statistics
 #using Plots
 #plotly()
 
@@ -14,12 +15,12 @@ function plot_default()
     legend=false)
 end
 
-function Inspect(x...; kw...)
-    f,_=lines(x...; kw...)
+#=function Inspect(x...; kw...)
+    f,_=lines!(x...; kw...)
     DataInspector(f)
     display(GLMakie.Screen(),f)
     f
-end
+end=#
 
 function EIS_overall()
     f_EIS=pick_file()
@@ -32,21 +33,25 @@ function EIS_overall()
     Z=df_EIS."Z (Ω)"[idx]
     Phase=df_EIS."-Phase (°)"[idx]
 
-    
-    acs1=Axis(aspect = AxisAspect(1))
-    acs2=Axis(xscale=log10, aspect = AxisAspect(1))
+    Nyquist=lines(Zre,Zimg,axis=(aspect=AxisAspect(1),))
+    DataInspector(Nyquist)
+    display(GLMakie.Screen(),Nyquist)
 
-    Nyquist=Inspect(acs1,Zre,Zimg)
-    Bode=Inspect(acs2,Frequency,Phase)
-    Module=Inspect(acs2,Frequency,Z)
+    Bode=lines(Frequency,Phase,axis=(xscale=log10,))
+    DataInspector(Bode)
+    display(GLMakie.Screen(),Bode)
+    
+    Module=lines(Frequency,Z,axis=(xscale=log10,))
+    DataInspector(Module)
+    display(GLMakie.Screen(),Module)
 
     savefolder=pick_folder()
 
-    save(joinpath(savefolder,basename(Freq_file)*
+    save(joinpath(savefolder,basename(f_EIS)*
     "_Nyquist.png"),Nyquist)
-    save(joinpath(savefolder,basename(Freq_file)*
+    save(joinpath(savefolder,basename(f_EIS)*
     "_Bode.png"),Bode)
-    save(joinpath(savefolder,basename(Freq_file)*
+    save(joinpath(savefolder,basename(f_EIS)*
     "_Module.png"),Module)
 end
     
@@ -71,16 +76,29 @@ function Single_Frequency(d,λ)
     deriv_Current=DataInterpolations.derivative.((Smooth_Current,),
     range(first(Time),last(Time),length=4096),1)
 
-    plot_Potential=Inspect(range(first(Time),last(Time),
+    plot_Potential=lines(range(first(Time),last(Time),
     length=length(Time)),x->Smooth_Potential(x),
     axis=(xlabel="Time",ylabel="Potential",title="Potential @ $(first(Particular_Frequency)) Hz",))
+    DataInspector(plot_Potential)
+    
+    scatter!(Time,Potential)
+    display(GLMakie.Screen(),plot_Potential)
 
-    plot_Current=Inspect(range(first(Time),last(Time),
+    plot_Current=lines(range(first(Time),last(Time),
     length=length(Time)),x->Smooth_Current(x),
     axis=(xlabel="Time (s)",ylabel="Current (A)",title="Current @ $(first(Particular_Frequency)) Hz",))
+    DataInspector(plot_Current)
+    
+    scatter!(Time,Current)
+    display(GLMakie.Screen(),plot_Current)
 
-    plot_ratio_V=Inspect(Time, Current ./ deriv_Potential,
+    plot_ratio_V=lines(Time, Current ./ deriv_Potential,
     axis=(title="ratio_V @ $(first(Particular_Frequency)) Hz",))
+    DataInspector(plot_ratio_V)
+    display(GLMakie.Screen(),plot_ratio_V)
+
+    C_average=mean(Current ./ deriv_Potential)
+    @show C_average
 
     #=plot_ratio_I=Inspect(Time,Potential ./ deriv_Current,
     axis=(title="ratio_I_$Particular_Frequency",aspect=DataAspect()))
