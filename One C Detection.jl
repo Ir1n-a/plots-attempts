@@ -47,6 +47,7 @@ function EIS_overall()
     #display(GLMakie.Screen(),Module)
 
     C_plot=lines(Frequency,C)
+    DataInspector(C_plot)
     display(GLMakie.Screen(),C_plot)
 
     savefolder=pick_folder()
@@ -66,10 +67,12 @@ function Single_Frequency(d,λ)
     Freq_file=pick_file()
     df=CSV.read(Freq_file,DataFrame,delim =";")
 
-    Potential=df."Potential (AC) (V)"
-    Current=df."Current (AC) (A)"
-    Time=df."Time domain (s)"
     Particular_Frequency=df."Frequency (Hz)"
+    Period= 1 / first(Particular_Frequency)
+    idx=df."Time domain (s)" .<= Period
+    Potential=df."Potential (AC) (V)"[idx]
+    Current=df."Current (AC) (A)"[idx]
+    Time=df."Time domain (s)"[idx]
 
     Smooth_Potential=RegularizationSmooth(Potential,Time,
     d; λ, alg = :fixed)
@@ -77,10 +80,10 @@ function Single_Frequency(d,λ)
     d; λ, alg = :fixed)
 
     deriv_Potential=DataInterpolations.derivative.((Smooth_Potential,),
-    range(first(Time),last(Time),length=4096),1)
+    range(first(Time),last(Time),length=100 * length(Time)),1)
     
     deriv_Current=DataInterpolations.derivative.((Smooth_Current,),
-    range(first(Time),last(Time),length=4096),1)
+    range(first(Time),last(Time),length=100 * length(Time)),1)
 
     plot_Potential=lines(range(first(Time),last(Time),
     length=length(Time)),x->Smooth_Potential(x),
@@ -98,13 +101,26 @@ function Single_Frequency(d,λ)
     scatter!(Time,Current)
     display(GLMakie.Screen(),plot_Current)
 
-    plot_ratio_V=lines(Time, Current ./ deriv_Potential,
+    plot_ratio_V=lines(range(first(Time),last(Time),
+    length=100 * length(Time)),Smooth_Current.(range(first(Time),last(Time),
+    length=100 * length(Time))) ./ deriv_Potential,
     axis=(title="ratio_V @ $(first(Particular_Frequency)) Hz",))
     DataInspector(plot_ratio_V)
     display(GLMakie.Screen(),plot_ratio_V)
 
-    C_average=mean(Current ./ deriv_Potential)
+    C_average=mean(Smooth_Current.(range(first(Time),last(Time),
+    length=100 * length(Time))) ./ deriv_Potential)
     @show C_average
+
+    smuth_cr=Smooth_Current.(range(first(Time),last(Time),
+    length=100 * length(Time)))
+    C_trial= Smooth_Current.(range(first(Time),last(Time),
+    length=100 * length(Time))) .* ((deriv_Potential .- 330 .* deriv_Current).^-1)
+    
+    C_qm=lines(smuth_cr,C_trial,axis=(title="C_maybe",))
+    DataInspector()
+
+    display(GLMakie.Screen(),C_qm)
 
     #=plot_ratio_I=Inspect(Time,Potential ./ deriv_Current,
     axis=(title="ratio_I_$Particular_Frequency",aspect=DataAspect()))
@@ -131,5 +147,5 @@ function Single_Frequency(d,λ)
 
 end
 
-Single_Frequency(2,0.001)
+Single_Frequency(2,0.002)
 EIS_overall()
