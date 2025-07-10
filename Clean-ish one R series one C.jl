@@ -34,6 +34,16 @@ function EIS_step(d,λ)
 
     scatter!(Zre,Zimg)
     display(GLMakie.Screen(),plot_Nyquist)
+
+    save_f=pick_folder()
+    save(joinpath(save_f,basename(f_EIS)*
+    "_Nyquist.png"),plot_Nyquist)
+
+    if issorted(Zimg)
+        "there's only series RC's present in the circuit"
+    else "there's something other than just series RC's present in the circuit"
+    end
+
 end
 
 EIS_step(2,0.002)
