@@ -59,7 +59,7 @@ function EIS_step(d,λ,noise_value)
     #derivative
     deriv_Nyquist=DataInterpolations.derivative.((Smooth_Nyquist,),
     Zre_range,2)
-    plot_deriv_Nyquist=lines(Zre_range,deriv_Nyquist)
+    plot_deriv_Nyquist=scatter(Zre_range,deriv_Nyquist)
     DataInspector(plot_deriv_Nyquist)
     display(GLMakie.Screen(),plot_deriv_Nyquist)
 
@@ -76,13 +76,14 @@ function EIS_step(d,λ,noise_value)
     intervals=[]
 
     for j in eachindex(Zre_range)
-        if (deriv_Nyquist[j] < 0.1) && (deriv_Nyquist[j] > -0.1)
+        if (abs(deriv_Nyquist[j]) < 0.1)
             push!(current_interval,j)
         else 
-            push!(intervals,current_interval)
-            current_interval=[]
+            push!(intervals,copy(current_interval))
+            empty!(current_interval)
         end
     end
+    push!(intervals, current_interval)
 
     intervals_0=filter(!isempty, intervals)
     max_int=maximum(length.(intervals_0))
@@ -92,6 +93,17 @@ function EIS_step(d,λ,noise_value)
     elseif max_int >10
         println("most likely there's at least one series RC")
     end
+
+    max_int, index_max=findmax(length.(intervals_0))
+    largest_int=intervals_0[index_max]
+    
+    test_deriv=lines(Zre_range[largest_int],deriv_Nyquist[largest_int])
+    DataInspector(test_deriv)
+    display(GLMakie.Screen(),test_deriv)
+    
+    @show Zre_range[largest_int]
+    intervals,Zre_range
+    @show current_interval
 
 end
 
