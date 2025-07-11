@@ -6,16 +6,18 @@ using DataInterpolations
 using RegularizationTools
 using Statistics
 
-function EIS_step(d,λ)
+function EIS_step(d,λ,noise_value)
     f_EIS=pick_file()
     df_EIS=CSV.read(f_EIS,DataFrame)
+
+    one_s_RC=[]
 
     idx=[]
     Zre_0=df_EIS."Z' (Ω)"
     Zimg_0=df_EIS."-Z'' (Ω)"
 
     for i in eachindex(Zre_0[1:end-1])
-        if (Zre_0[i] < Zre_0[i+1]) && (Zimg_0[i] > 0)
+        if (Zre_0[i] < Zre_0[i+1]) && (Zimg_0[i] > 0) && (Zre_0[i] > noise_value)
             push!(idx,i)
         end
     end
@@ -25,6 +27,14 @@ function EIS_step(d,λ)
     Frequency=df_EIS."Frequency (Hz)"[idx]
     Z=df_EIS."Z (Ω)"[idx]
     Phase=df_EIS."-Phase (°)"[idx]
+
+    plot_before=lines(Zre,Zimg,axis=(title="Nyqusit_Before",))
+    DataInspector(plot_before)
+    display(GLMakie.Screen(),plot_before)
+
+    plot_before_deriv=lines(Zre,Zimg ./ Zre,axis=(title="Deriv_Before",))
+    DataInspector(plot_before_deriv)
+    display(GLMakie.Screen(),plot_before_deriv)
 
     Smooth_Nyquist=RegularizationSmooth(Zimg,Zre,d;λ, alg= :fixed)
 
@@ -39,12 +49,22 @@ function EIS_step(d,λ)
     save(joinpath(save_f,basename(f_EIS)*
     "_Nyquist.png"),plot_Nyquist)
 
+    Zre_range=range(first(Zre),last(Zre),length = 10*length(Zre))
+
+    deriv_Nyquist=DataInterpolations.derivative.((Smooth_Nyquist,),
+    Zre_range,2)
+    plot_deriv_Nyquist=lines(Zre_range,deriv_Nyquist)
+    DataInspector(plot_deriv_Nyquist)
+    display(GLMakie.Screen(),plot_deriv_Nyquist)
+
     if issorted(Zimg)
-        "there's only series RC's present in the circuit"
-    else "there's something other than just series RC's present in the circuit"
+        println("there's only series RC's present in the circuit")
+        one_s_RC=true
+    else
+        println("there's something other than just series RC's present in the circuit")
+        one_s_RC=false
     end
 
 end
 
-EIS_step(2,0.002)
-
+EIS_step(2,0.002,0)
