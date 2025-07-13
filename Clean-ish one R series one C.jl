@@ -5,8 +5,11 @@ using GLMakie
 using DataInterpolations
 using RegularizationTools
 using Statistics
+using NumericalIntegration
+using PrettyTables
 
 function EIS_step(d,λ,noise_value)
+    println("File for EIS")
     f_EIS=pick_file()
     df_EIS=CSV.read(f_EIS,DataFrame)
 
@@ -52,6 +55,8 @@ function EIS_step(d,λ,noise_value)
     scatter!(Zre,Zimg)
     display(GLMakie.Screen(),plot_Nyquist)
 
+    #save for EIS
+    println("Save folder for EIS")
     save_f=pick_folder()
     save(joinpath(save_f,basename(f_EIS)*
     "_Nyquist.png"),plot_Nyquist)
@@ -99,6 +104,8 @@ function EIS_step(d,λ,noise_value)
     elseif max_int >10
         println("most likely there's at least one series RC")
         one_s_RC=true
+    else 
+        println("There could be more than one series RC involved")
     end
 
     max_int, index_max=findmax(length.(intervals_0))
@@ -123,14 +130,19 @@ function EIS_step(d,λ,noise_value)
     intervals,Zre_range
     @show current_interval
 
-    return Zre,Zimg,Frequency,Z,Phase,only_RC,one_s_RC,index_max,Rs
+    #return Zre,Zimg,Frequency,Z,Phase,only_RC,one_s_RC,index_max,Rs
+    return Zre,Zimg,one_s_RC,only_RC,Rs,Frequency
 end
 
 EIS_step(2,0.002,0)
 
-function Current_Voltage(d1,λ1)
+function Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
+    println("File for I_V")
     f_I_V=pick_file()
     df_I_V=CSV.read(f_I_V,DataFrame,delim=";")
+
+    #parameters from EIS
+    Zre,Zimg,one_s_RC,only_RC,Rs,Frequency=EIS_step(d,λ,noise_value)
 
     # I & V variables
     Particular_Frequency=df_I_V."Frequency (Hz)"
@@ -147,7 +159,7 @@ function Current_Voltage(d1,λ1)
     d1;λ=λ1, alg=:fixed)
 
     plot_Potential=lines(range(first(Time),last(Time),
-    length= 10*length(Time)),x->Smooth_Potential(x),
+    length= 10* length(Time)),x->Smooth_Potential(x),
     axis=(xlabel="Time (s)",ylabel="Potential (V)",title=
     "Potential @ $(first(Particular_Frequency)) Hz",))
         DataInspector(plot_Potential)
@@ -155,7 +167,7 @@ function Current_Voltage(d1,λ1)
     display(GLMakie.Screen(),plot_Potential)
 
     plot_Current=lines(range(first(Time),last(Time),
-    length= 10*length(Time)),x->Smooth_Current(x),
+    length= 10* length(Time)),x->Smooth_Current(x),
     axis=(xlabel="Time (s)",ylabel="Current (A)",title=
     "Current @ $(first(Particular_Frequency)) Hz",))
         DataInspector(plot_Current)
@@ -164,12 +176,12 @@ function Current_Voltage(d1,λ1)
 
     # V first order derivative
     deriv_Potential=DataInterpolations.derivative.((Smooth_Potential,),
-    range(first(Time),last(Time),length=10 * length(Time)),1)
+    range(first(Time),last(Time),length=length(Time)),1)
 
     deriv_Current=DataInterpolations.derivative.((Smooth_Current,),
-    range(first(Time),last(Time),length=10 * length(Time)),1)
+    range(first(Time),last(Time),length=length(Time)),1)
 
-    Time_range=range(first(Time),last(Time),length = 10*length(Time))
+    Time_range=range(first(Time),last(Time),length =length(Time))
 
     deriv_Potential_plot=lines(Time_range,deriv_Potential,
     axis=(xlabel="Time (s)",ylabel="Potential Derivative (V/s)",title=
@@ -183,6 +195,61 @@ function Current_Voltage(d1,λ1)
         DataInspector(deriv_Current_plot)
     display(GLMakie.Screen(),deriv_Current_plot)
 
+    #saving plots
+    println("Save folder for I_V")
+    save_folder=pick_folder()
+
+    save(joinpath(save_folder,
+    basename(f_I_V)*"_Potential.png"),plot_Potential)
+    save(joinpath(save_folder,
+    basename(f_I_V)*"_Current.png"),plot_Current)
+    save(joinpath(save_folder,basename(f_I_V)*
+    "_Potential_deriv.png"),deriv_Potential_plot)
+    save(joinpath(save_folder,basename(f_I_V)*
+    "_Current_deriv.png"),deriv_Current_plot)
+
+    #index for particular frequency 
+    @show Frequency
+    index_Frequency=[]
+    for j in eachindex(Frequency)
+        if Frequency[j] ≈ first(Particular_Frequency)
+            push!(index_Frequency,j)
+        else println(Frequency[j])
+        end
+    end
+
+    @show index_Frequency
+
+    #capacitance calculation
+    C_time=[]
+    C_freq=[]
+    
+    if one_s_RC
+        C_time = integrate(Time,Current .* (deriv_Potential .- Rs .* deriv_Current).^-1) / last(Time)
+        C_freq=1 ./ (2 * π .* first(Particular_Frequency) .* Zimg[index_Frequency])
+    else println("Other model pending")
+    end
+    
+    @show C_time
+    @show C_freq
+
+    header = (
+           ["C_manufacturer", "C_measured", "C_time", "C_frequency"],
+           [ "[μF]",     "[μF]",  "[μF]",      "[μF]"]
+       )
+
+   
+    
+    data=[C_manufacturer C_measured C_time*10^6 C_freq*10^6]
+
+    pretty_table(data;header)
+
+    return Rs,C_time,C_freq
+
 end
 
-Current_Voltage(2,0.002)
+Current_Voltage(2,0.002,2,0.002,0,100,106.7)
+
+#theoretical model and optimizaton steps
+
+#I_V function with a second method for both R and C determined from differnetial equation
