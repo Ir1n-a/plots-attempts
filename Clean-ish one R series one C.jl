@@ -7,6 +7,7 @@ using RegularizationTools
 using Statistics
 using NumericalIntegration
 using PrettyTables
+using Optimization
 
 #EIS steps
 
@@ -256,6 +257,24 @@ Current_Voltage(2,0.002,2,0.002,0,100,106.7)
 
 #theoretical model and optimizaton steps
 
+function difference(x,p)
+    Frequency, Zre_exp, Zimg_exp = p
+    Rs=x[1]
+    C_time=x[2]
+
+    Zre_t= (2 *π .* Frequency .* Rs .* C_time) ./ (2 .* π .* Frequency .* C_time)
+    Zimg_t_time= 1 ./ (2* π .*Frequency .* C_time)
+    #Zimg_t_freq= 1 ./ (2* π .*Frequency .* C_freq)
+
+    #println("difference part")
+    
+    #Zre_exp,Zimg_exp,_=EIS_step(d,λ,noise_value)
+
+    difference= sum((abs2.(Zre_exp.-Zre_t)) ./ length(Zre_exp) .+ 
+    sum(abs2.(Zimg_exp.-Zimg_t_time)) ./ length(Zimg_exp))
+end
+
+
 function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
     Rs,C_time,C_freq,one_s_RC,only_RC,Frequency,Zre,Zimg,Z=
     Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
@@ -287,7 +306,32 @@ function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
         DataInspector(Z_theoretical_Nyquist)
         display(GLMakie.Screen(),Z_theoretical_Nyquist)    
 
-    @show Zre ./ Frequency
+    @show Zre_t
+    
+    opt_file=pick_file()
+
+
+    x0=[Rs;C_time]
+    p= Frequency, Zre, Zimg
+
+    optimization_function=OptimizationFunction(difference,AutoForwardDiff())
+    problem=OptimizationProblem(optimization_function,x0,p)
+    result=Optimization.solve(problem,Optimization.LBFGS(),maxiters=100)
+
+    println(result-x0)
+
+    Zre_o= (2 *π .* Frequency .* result[1] .* result[2]) ./ 
+    (2 .* π .* Frequency .* result[2])
+    #Zre_o=result[1:length(Zre_t)]
+    Zimg_o= 1 ./ (2* π .*Frequency .* result[2])
+
+        module_opti=lines(Frequency,sqrt.(Zre_o.^2 .+ Zimg_o.^2),axis=(xscale=log10,title="Opti"))
+        scatter!(Frequency,Z)
+        DataInspector(module_opti)
+        display(GLMakie.Screen(),module_opti)      
+
+    return result
+    
 end
 
 
