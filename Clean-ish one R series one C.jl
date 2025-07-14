@@ -8,6 +8,8 @@ using Statistics
 using NumericalIntegration
 using PrettyTables
 
+#EIS steps
+
 function EIS_step(d,λ,noise_value)
     println("File for EIS")
     f_EIS=pick_file()
@@ -131,10 +133,12 @@ function EIS_step(d,λ,noise_value)
     @show current_interval
 
     #return Zre,Zimg,Frequency,Z,Phase,only_RC,one_s_RC,index_max,Rs
-    return Zre,Zimg,one_s_RC,only_RC,Rs,Frequency
+    return Zre,Zimg,one_s_RC,only_RC,Rs,Frequency,Z
 end
 
 EIS_step(2,0.002,0)
+
+#I-V steps 
 
 function Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
     println("File for I_V")
@@ -142,7 +146,7 @@ function Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
     df_I_V=CSV.read(f_I_V,DataFrame,delim=";")
 
     #parameters from EIS
-    Zre,Zimg,one_s_RC,only_RC,Rs,Frequency=EIS_step(d,λ,noise_value)
+    Zre,Zimg,one_s_RC,only_RC,Rs,Frequency,Z=EIS_step(d,λ,noise_value)
 
     # I & V variables
     Particular_Frequency=df_I_V."Frequency (Hz)"
@@ -244,12 +248,49 @@ function Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
 
     pretty_table(data;header)
 
-    return Rs,C_time,C_freq
+    return Rs,C_time,C_freq,one_s_RC,only_RC,Frequency,Zre,Zimg,Z
 
 end
 
 Current_Voltage(2,0.002,2,0.002,0,100,106.7)
 
 #theoretical model and optimizaton steps
+
+function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
+    Rs,C_time,C_freq,one_s_RC,only_RC,Frequency,Zre,Zimg,Z=
+    Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
+
+    Zre_t=[]
+    Zimg_t_time=[]
+    Zimg_t_freq=[]
+    Z_t=[]
+
+    if only_RC
+        if one_s_RC
+            Zre_t= (2 *π .* Frequency .* Rs .* C_time) ./ (2 .* π .* Frequency .* C_time)
+            Zimg_t_time= 1 ./ (2* π .*Frequency .* C_time)
+            Zimg_t_freq= 1 ./ (2* π .*Frequency .* C_freq)
+            Z_t= (sqrt.(1 .+ (2* π .*Frequency .* Rs .* C_time).^2)) ./
+            (2 .* π .*Frequency .*C_time)
+        else "Model for multiple series RCs"        
+        end
+    else "Program for parallel RC joins the chat"
+    end
+
+    Z_theoretical_plot=lines(Frequency,Z,axis=(xscale=log10,))
+        scatter!(Frequency,Z)
+        DataInspector(Z_theoretical_plot)
+        display(GLMakie.Screen(),Z_theoretical_plot)
+
+    Z_theoretical_Nyquist=lines(Zre_t,Zimg_t_time)
+        scatter!(Zre,Zimg)
+        DataInspector(Z_theoretical_Nyquist)
+        display(GLMakie.Screen(),Z_theoretical_Nyquist)    
+
+    @show Zre ./ Frequency
+end
+
+
+Model(2,0.002,2,0.002,0,100,106.7)
 
 #I_V function with a second method for both R and C determined from differnetial equation
