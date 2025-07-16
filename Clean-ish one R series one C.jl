@@ -302,8 +302,9 @@ function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured,R_manufacturer,
     else "Program for parallel RC joins the chat"
     end
 
-    Z_theoretical_plot=lines(Frequency,Z,axis=(xscale=log10,))
-        scatter!(Frequency,Z)
+    Z_theoretical_plot=lines(Frequency,Z,axis=(xscale=log10,title="Discovered Parameters",
+    xlabel="Frequency (Hz)",ylabel="Z (Ω)"),color=:goldenrod1,linewidth=3)
+        scatter!(Frequency,Z,color=:turquoise4,markersize=15)
         DataInspector(Z_theoretical_plot)
         display(GLMakie.Screen(),Z_theoretical_plot)
 
@@ -312,8 +313,13 @@ function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured,R_manufacturer,
         DataInspector(Z_theoretical_Nyquist)
         display(GLMakie.Screen(),Z_theoretical_Nyquist)    
 
+    println("Save folder 4 Discovered parameters")
+    save(joinpath(pick_folder(),"Discovered_parameters.png"),Z_theoretical_plot)
+    
+
     @show Zre_t
     
+    println("Optimization file")
     opt_file=pick_file()
 
 
@@ -331,10 +337,14 @@ function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured,R_manufacturer,
     #Zre_o=result[1:length(Zre_t)]
     Zimg_o= 1 ./ (2* π .*Frequency .* result[2])
 
-        module_opti=lines(Frequency,sqrt.(Zre_o.^2 .+ Zimg_o.^2),axis=(xscale=log10,title="Opti"))
-        scatter!(Frequency,Z)
+        module_opti=lines(Frequency,sqrt.(Zre_o.^2 .+ Zimg_o.^2),axis=(xscale=log10,title="Optimization",
+        xlabel="Frequency (Hz)",ylabel="Z (Ω)"),color=:darkred,linewidth=3)
+        scatter!(Frequency,Z,color=:turquoise4,markersize=15)
         DataInspector(module_opti)
         display(GLMakie.Screen(),module_opti)      
+
+    println("Save folder 4 Optimization")
+    save(joinpath(pick_folder(),"Optimization.png"),module_opti)
 
 
     header1 = (
