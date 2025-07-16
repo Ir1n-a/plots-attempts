@@ -24,10 +24,17 @@ function EIS_step(d,λ,noise_value)
     Zre_0=df_EIS."Z' (Ω)"
     Zimg_0=df_EIS."-Z'' (Ω)"
 
+    @assert length(Zre_0) == length(Zimg_0)
+
     #removing some noise
     for i in eachindex(Zre_0[1:end-1])
+        @info "i=>$i: $(Zre_0[i]) $(Zre_0[i+1]): $(Zre_0[i] < Zre_0[i+1]) $(Zimg_0[i] > 0) $(Zre_0[i] > noise_value)"
         if (Zre_0[i] < Zre_0[i+1]) && (Zimg_0[i] > 0) && (Zre_0[i] > noise_value)
-            push!(idx,i)
+            if isempty(idx)
+                push!(idx,i)
+            elseif all(Zre_0[idx] .<= Zre_0[i])
+                push!(idx,i)
+            end
         end
     end
 
@@ -37,6 +44,15 @@ function EIS_step(d,λ,noise_value)
     Frequency=df_EIS."Frequency (Hz)"[idx]
     Z=df_EIS."Z (Ω)"[idx]
     Phase=df_EIS."-Phase (°)"[idx]
+
+    @show Zre
+
+    println("is Zre sorted")
+    for i in eachindex(Zre[1:end-1])
+        if Zre[i] > Zre[i+1]
+            println("problem at $i")
+        end
+    end
    
 
     #plots & interpolation
@@ -47,6 +63,7 @@ function EIS_step(d,λ,noise_value)
     plot_before_deriv=lines(Zre,Zimg ./ Zre,axis=(title="Deriv_Before",))
     DataInspector(plot_before_deriv)
     display(GLMakie.Screen(),plot_before_deriv)
+
 
     Smooth_Nyquist=RegularizationSmooth(Zimg,Zre,d;λ, alg= :fixed)
 
@@ -238,17 +255,6 @@ function Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
     @show C_time
     @show C_freq
 
-    header = (
-           ["C_manufacturer", "C_measured", "C_time", "C_frequency"],
-           [ "[μF]",     "[μF]",  "[μF]",      "[μF]"]
-       )
-
-   
-    
-    data=[C_manufacturer C_measured C_time*10^6 C_freq*10^6]
-
-    pretty_table(data;header)
-
     return Rs,C_time,C_freq,one_s_RC,only_RC,Frequency,Zre,Zimg,Z
 
 end
@@ -275,7 +281,7 @@ function difference(x,p)
 end
 
 
-function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
+function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured,R_manufacturer,R_measured)
     Rs,C_time,C_freq,one_s_RC,only_RC,Frequency,Zre,Zimg,Z=
     Current_Voltage(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
 
@@ -330,11 +336,32 @@ function Model(d1,λ1,d,λ,noise_value,C_manufacturer,C_measured)
         DataInspector(module_opti)
         display(GLMakie.Screen(),module_opti)      
 
+
+    header1 = (
+           ["C_manufacturer", "C_measured", "C_time", "C_frequency","C_optim"],
+           [ "μF",     "μF",  "μF",      "μF",   "μF"]
+       )
+
+   
+    
+    data1=[C_manufacturer C_measured C_time*10^6 C_freq*10^6 result[2]*10^6]
+
+    pretty_table(data1;header=header1)
+
+    header2= (
+        ["R_manufacturer", "R_measured", "R_discovered" , "R_optim"],
+        [ "Ω" , "Ω", "Ω", "Ω" ]
+    )
+
+    data2=[R_manufacturer R_measured Rs result[1]]
+
+    pretty_table(data2;header=header2)
+
     return result
     
 end
 
 
-Model(2,0.002,2,0.002,0,100,106.7)
+Model(2,0.002,2,0.002,0,100,106.7,330,324.6)
 
 #I_V function with a second method for both R and C determined from differnetial equation
