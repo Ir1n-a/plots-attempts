@@ -43,14 +43,14 @@ function single_plot(clr)
         Z=df."Z (Ω)"[idx_EIS]
         Phase=df."-Phase (°)"[idx_EIS]
 
-        plot_Nyquist=lines(Zre,Zimg,axis=(title="Nyquist",xlabel="Zre (Ω)",
+        plot_Nyquist=lines(Zre,Zimg,axis=(title=basename(single_file)*"_Nyquist",xlabel="Zre (Ω)",
         ylabel="Zimg (Ω)"),color=clr)
         DataInspector(plot_Nyquist)
         display(GLMakie.Screen(),plot_Nyquist)
 
         save(joinpath(save_folder,basename(single_file)*"_Nyquist.png"),plot_Nyquist)
 
-        plot_Bode_Phase=lines(Frequency,Phase,axis=(title="Bode Phase Difference",
+        plot_Bode_Phase=lines(Frequency,Phase,axis=(title=basename(single_file)*"_Bode Phase Difference",
         xlabel="Frequency (Hz)",ylabel="Phase (deg)",
         xscale=log10),color=clr)
         DataInspector(plot_Bode_Phase)
@@ -58,7 +58,7 @@ function single_plot(clr)
 
         save(joinpath(save_folder,basename(single_file)*"_Bode Phase.png"),plot_Bode_Phase)
 
-        plot_Bode_Module=lines(Frequency,Z,axis=(title="Bode Module",
+        plot_Bode_Module=lines(Frequency,Z,axis=(title=basename(single_file)*"_Bode Module",
         xlabel="Frequency (Hz)",ylabel="Z (Ω)",xscale=log10),color=clr)
         DataInspector(plot_Bode_Module)
         display(GLMakie.Screen(),plot_Bode_Module)
@@ -71,8 +71,10 @@ function single_plot(clr)
         idx_CV= df[!, :Scan] .==2
         Potential=df."WE(1).Potential (V)"[idx_CV]
         Current=df."WE(1).Current (A)"[idx_CV]
+        push!(Potential,first(Potential))
+        push!(Current,first(Current))
 
-        plot_CV=lines(Potential,Current,axis=(title="Cyclic Voltammetry",
+        plot_CV=lines(Potential,Current,axis=(title=basename(single_file)*"_Cyclic Voltammetry",
         xlabel="Potential (V)",ylabel="Current (A)"),color=clr)
         DataInspector(plot_CV)
         display(GLMakie.Screen(),plot_CV)
@@ -84,7 +86,7 @@ function single_plot(clr)
         Potential=df."WE(1).Potential (V)"
 
         if mode == "C"
-            plot_C=lines(Time,Potential,axis=(title="Charge",
+            plot_C=lines(Time,Potential,axis=(title=basename(single_file)*"_Charge",
             xlabel="Time (s)",ylabel="Potential (V)"),color=clr)
             DataInspector(plot_C)
             display(GLMakie.Screen(),plot_C)
@@ -92,7 +94,7 @@ function single_plot(clr)
         save(joinpath(save_folder,basename(single_file)*"_C.png"),plot_C)
         
         elseif mode == "D"
-            plot_D=lines(Time,Potential,axis=(title="Discharge",
+            plot_D=lines(Time,Potential,axis=(title=basename(single_file)*"_Discharge",
             xlabel="Time (s)",ylabel="Potential (V)"),color=clr)
             DataInspector(plot_D)
             display(GLMakie.Screen(),plot_D)
