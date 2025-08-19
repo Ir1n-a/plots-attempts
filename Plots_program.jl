@@ -13,7 +13,7 @@ function single_plot_mode_selection()
     if names(df)[2] == "Frequency (Hz)"
         println("this is EIS")
         mode = "EIS"
-    elseif names(df)[2] == "Time (s)"
+    elseif names(df)[4] == "Scan"
         println("this is CV")
         mode = "CV"
     elseif names(df)[2] == "WE(1).Potential (V)" && df[!,5][1] >0
@@ -22,6 +22,9 @@ function single_plot_mode_selection()
     elseif names(df)[2] == "WE(1).Potential (V)" && df[!,5][1] <0
         println("this is D")
         mode = "D"
+    elseif names(df)[4] == "Index" && names(df)[5] == "WE(1).Potential (V)"
+        println("this is I-V")
+        mode = "I-V"
     else println("this type of data is not supported by this program *shrug emoji*")
     end
     return mode,single_file,df
@@ -81,6 +84,17 @@ function single_plot(clr)
 
         save(joinpath(save_folder,basename(single_file)*"_CV.png"),plot_CV)
 
+    elseif mode == "I-V"
+        Current=df."WE(1).Current (A)"
+        Potential=df."WE(1).Potential (V)"
+
+        plot_IV=lines(Potential,Current,axis=(title=basename(single_file)*"_I-V",
+        xlabel="Potential (V)",ylabel="Current (A)"),color=clr)
+        DataInspector(plot_IV)
+        display(GLMakie.Screen(),plot_IV)
+
+        save(joinpath(save_folder,basename(single_file)*"_I-V.png"),plot_IV)
+
     elseif mode =="C" || mode =="D"
         Time=df."Corrected time (s)"
         Potential=df."WE(1).Potential (V)"
@@ -105,3 +119,8 @@ function single_plot(clr)
 end
 
 single_plot(:mediumorchid4)
+
+# now for the overlay I could do a brute force thing and
+#just iterate the single version, but I'm not gonna do that....maybe :d
+#I need the graph label though, so I probably shoud write a separate version
+#with permutations which check whether it's the single option or the multiple version
